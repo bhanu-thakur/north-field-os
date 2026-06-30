@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>North Field OS</title>
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+
+    <!-- SVG Icon Sprite -->
+    <svg style="display: none;">
+        <symbol id="ic-mission" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </symbol>
+        <symbol id="ic-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-6l-2 3h-4l-2-3H2"/>
+            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+        </symbol>
+        <symbol id="ic-capture" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </symbol>
+    </svg>
+
+    <!-- Main View Mount -->
+    <main id="view"></main>
+
+    <!-- Global Floating Action Button -->
+    <button id="fab-capture" onclick="location.hash='#/capture'">
+        <svg class="ic"><use href="#ic-capture"/></svg>
+    </button>
+
+    <!-- Bottom Navigation -->
+    <nav id="bottom-nav">
+        <a href="#/" class="nav-item">
+            <svg class="ic"><use href="#ic-mission"/></svg>
+            <span>Mission</span>
+        </a>
+        <div class="nav-spacer"></div> <!-- Space for FAB -->
+        <a href="#/inbox" class="nav-item">
+            <svg class="ic"><use href="#ic-inbox"/></svg>
+            <span>Inbox</span>
+        </a>
+    </nav>
+
+    <!-- Engine Scripts -->
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
