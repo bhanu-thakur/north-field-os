@@ -41,12 +41,22 @@
         </div>
     </div>
 
+    <!-- Interactive Tour Overlay -->
+    <div id="tour-backdrop" class="tour-overlay">
+        <h3 id="tour-step-title">Step 1</h3>
+        <p id="tour-step-desc">Description</p>
+        <div class="tour-actions">
+            <button id="tour-btn-skip" style="background:transparent; color:var(--primary-soft); padding:8px 0;" onclick="app.endSimulator()">End Tour</button>
+            <button id="tour-btn-next" onclick="app.nextTourStep()">Next</button>
+        </div>
+    </div>
+
     <!-- Global Universal Capture Modal -->
-    <div id="uc-backdrop" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); z-index:9999; justify-content:center; align-items:flex-start; padding-top:15vh;">
+    <div id="uc-backdrop" onclick="if(event.target===this) app.toggleUniversalCapture()" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); z-index:9999; justify-content:center; align-items:flex-start; padding-top:15vh;">
         <div style="width:100%; max-width:600px; background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 12px 48px rgba(0,0,0,0.08); overflow:hidden;">
             <div style="padding:16px 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint);">Universal Capture</span>
-                <span style="font-size:0.75rem; color:var(--ink-soft);">Press ESC to close</span>
+                <span onclick="app.toggleUniversalCapture()" style="font-size:0.75rem; color:var(--ink-soft); cursor:pointer; font-weight:600;">Close ✕</span>
             </div>
             <div style="padding:24px;">
                 <textarea id="uc-input" placeholder="What did you see? (e.g. 'Met Arthur, he hates his current supplier...')" style="width:100%; min-height:120px; font-size:1.2rem; border:none; padding:0; background:transparent; resize:vertical; outline:none; box-shadow:none; color:var(--ink); line-height:1.5; font-family:'Inter',sans-serif;"></textarea>

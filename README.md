@@ -6,8 +6,15 @@ North Field OS is a mobile-first, offline-first Progressive Web App (PWA) design
 
 ## Philosophy
 - **The 30-Second Rule:** Everything must be executable standing outside a hotel in under 30 seconds.
-- **Offline-First:** The real world does not always have Wi-Fi. All data is local-first.
+- **Offline-First Data, Serverless AI:** The real world does not always have Wi-Fi. All data is local-first (`IndexedDB`). AI is executed securely via a client-side API key stored locally (Gemini 2.5 Flash Lite).
 - **Vanilla Web:** No bundlers. No frameworks. Open `index.html` and it works.
+
+## Key Features (V5)
+- **Universal Capture:** Hit `/` anywhere to log raw observations.
+- **Aggressive Deal Assessor:** Auto-detects immediate high-value opportunities and auto-generates tactical action plans.
+- **Background Pattern Engine:** Semantic clustering of slow-burn notes into Industry Bibles.
+- **The Virtual Board of Directors:** AI personas (CEO, CFO, CTO, CPO) brutally analyze your opportunities.
+- **Interactive AI Tutor:** Strict, context-aware business coaching without technical noise.
 
 ## Installation & Development
 1. Clone the repository.

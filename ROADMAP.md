@@ -1,23 +1,27 @@
-# ROADMAP
+# NORTH OS — ROADMAP
 
-## Version 0.1 (The Field Recorder)
-- Mission Console (Static UI)
-- Quick Capture (Text to LocalStorage)
-- Observation Inbox
-- PWA Configuration (`sw.js`, `manifest.webmanifest`)
+## ✅ Phase 1: The Foundation (V1-V2)
+- LocalStorage Database (IndexedDB)
+- The Execution Pipeline (Idea -> Validation -> First Sale -> Scale)
+- Clean, brutalist CSS styling and architecture
 
-## Version 0.2 (The Graph)
-- Industry & People Bibles
-- Manual tagging system in Inbox
+## ✅ Phase 2: The Pattern Engine (V3)
+- Background processing for field observations
+- Semantic keyword clustering
+- Industry & People Bibles auto-generation
 
-## Version 0.3 (The Compounding Engine)
-- AI entity extraction logic
-- Auto-updating Bibles based on processed observations
+## ✅ Phase 3: The Intelligence Engine (V4)
+- Gemini API Integration (Client-side, Serverless)
+- "Prep Brief" one-click executive summaries
+- Explainable AI scoring (Leverage/Velocity/Conviction)
+- Just-In-Time Micro-Learning (Dynamic tactical playbooks)
 
-## Version 0.4 (Execution & Judgment)
-- Opportunity Pipeline
-- Decision Journal
+## ✅ Phase 4: The Active Copilot (V5)
+- Aggressive Deal Assessor (Bypassing pattern engine for immediate deals)
+- Interactive AI Tutor Sidebar (Strictly non-technical business coaching)
+- The Virtual Board of Directors (CEO, CFO, CTO, CPO cross-domain analysis)
 
-## Version 1.0 (The Board Room)
-- Sunday Weekly Review AI personas
-- Enterprise Dashboard
+## 🚀 Phase 5: The Next Frontier (Upcoming)
+- **Data Mobility**: Cross-device syncing using decentralized stores (e.g., Gun.js or WebRTC) without sacrificing privacy.
+- **Voice-to-Execution**: Direct voice transcription API integration to log observations hands-free while walking or driving.
+- **Dynamic Playbook Library**: A dedicated library view to store and categorize generated execution playbooks for future reference.

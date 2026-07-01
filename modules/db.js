@@ -1,7 +1,7 @@
 window.NF = window.NF || {};
 
 NF.DB = (function() {
-    const DB_NAME = 'NorthFieldOS';
+    let DB_NAME = 'NorthFieldOS';
     const DB_VERSION = 4; // Bumped to force schema upgrade for observations/patterns
     let dbInstance = null;
 
@@ -191,7 +191,72 @@ NF.DB = (function() {
         return put('settings', { id: key, value });
     }
 
+    async function switchDatabase(name) {
+        if (dbInstance) {
+            dbInstance.close();
+        }
+        DB_NAME = name;
+        dbInstance = null;
+        await init();
+    }
+
+    async function nukeDatabase() {
+        const db = await init();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORES, 'readwrite');
+            STORES.forEach(storeName => {
+                // Don't nuke settings so we keep the API key and founder intel baseline
+                if (storeName !== 'settings') {
+                    tx.objectStore(storeName).clear();
+                }
+            });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
     return {
-        init, get, getAll, put, remove, getSetting, setSetting
+        init, get, getAll, put, remove, getSetting, setSetting, switchDatabase, nukeDatabase
     };
+})();
+
+NF.AI = (function() {
+    async function generateContent(prompt, opts = {}) {
+        const apiKey = await NF.DB.getSetting('gemini_api_key');
+        if (!apiKey) return null;
+        
+        try {
+            const body = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { 
+                    temperature: opts.temperature || 0.2,
+                    maxOutputTokens: opts.maxOutputTokens || 300
+                }
+            };
+            
+            if (opts.systemInstruction) {
+                body.system_instruction = { parts: [{ text: opts.systemInstruction }] };
+            }
+
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            
+            if (!res.ok) {
+                const errText = await res.text();
+                console.error('Gemini API Error:', res.status, errText);
+                return null;
+            }
+            
+            const data = await res.json();
+            return data.candidates[0].content.parts[0].text;
+        } catch (err) {
+            console.error('Gemini API Error: Network failure.');
+            return null;
+        }
+    }
+    
+    return { generateContent };
 })();
