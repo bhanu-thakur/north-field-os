@@ -4,10 +4,10 @@
 - **Date:** 2026-07-01
 - **Problem:** Need offline data storage for complex objects.
 - **Alternatives:** IndexedDB, SQLite (WASM).
-- **Chosen Solution:** `localStorage`.
-- **Reasoning:** Extreme simplicity, zero async overhead for initial versions, perfectly synchronous UI updates.
-- **Tradeoffs:** 5MB limit. Cannot query large datasets efficiently.
-- **Review Date:** When payload exceeds 2MB (approx. 20,000 observations). We will migrate to IndexedDB then.
+- **Chosen Solution:** `IndexedDB`.
+- **Reasoning:** We originally used `localStorage` for extreme simplicity, but migrated to `IndexedDB` in V4 because `localStorage` was blocking the main thread on large JSON parsing and hitting size limits. IndexedDB provides a fully asynchronous, scalable offline database while remaining native to the browser.
+- **Tradeoffs:** More complex async API (promises).
+- **Review Date:** N/A (Migrated in V4)
 
 ## 2. Vanilla JS vs Frameworks
 - **Date:** 2026-07-01

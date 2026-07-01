@@ -11,7 +11,7 @@ const renderSidebar = () => {
         <aside class="side">
             <a href="#" class="brand">
                 <div class="mark" style="background:#111;"><svg class="ic" style="color:#fff;"><use href="#i-compass"/></svg></div>
-                <div class="bt">North<small>V3 Engine</small></div>
+                <div class="bt">North<small>V5 Engine</small></div>
             </a>
             <div class="seek" onclick="app.showDialog('alert', 'Feature Placeholder', 'Universal Command opens spotlight')">
                 <svg class="ic"><use href="#i-search"/></svg>
@@ -306,7 +306,7 @@ const renderDiscovery = async () => {
                 
             html += `
                 <div class="card" style="padding:16px 20px;">
-                    <p style="font-size:1.1rem; color:var(--ink); line-height:1.5; margin-bottom:12px;">${o.text}</p>
+                    <p style="font-size:1.1rem; color:var(--ink); line-height:1.5; margin-bottom:12px;">${app.escapeHtml(o.text)}</p>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size:0.8rem; color:var(--ink-faint);">${date}</span>
                         <div style="display:flex; gap:8px; align-items:center;">
@@ -401,7 +401,7 @@ const renderTutorHistory = (history) => {
     }
     return history.map(m => `
         <div class="tutor-msg ${m.role === 'user' ? 'user' : 'ai'}">
-            ${m.text.replace(/\n/g, '<br>')}
+            ${app.escapeHtml(m.text).replace(/\n/g, '<br>')}
         </div>
     `).join('');
 };
@@ -411,6 +411,8 @@ const renderOpportunity = async () => {
     if (!opp) return app.go('Pipeline');
     
     const isArchived = opp.status === 'Archived';
+    const apiKey = await NF.DB.getSetting('gemini_api_key', '');
+    const hasAI = !!apiKey;
     
     // Compounding Timeline
     const stages = ['Observation', 'Pattern', 'Hypothesis', 'Validation', 'First Sale', 'Business'];
@@ -430,11 +432,12 @@ const renderOpportunity = async () => {
                 
                 <div class="phead" style="align-items:center;">
                     <div>
-                        <h1 class="ptitle" style="${isArchived ? 'text-decoration:line-through; color:var(--ink-faint);' : ''}">${opp.title}</h1>
+                        <h1 class="ptitle" style="${isArchived ? 'text-decoration:line-through; color:var(--ink-faint);' : ''}">${app.escapeHtml(opp.title)}</h1>
                         ${isArchived ? '<span class="pill" style="margin-top:8px;">Archived (Graveyard)</span>' : ''}
                     </div>
                     <div style="display:flex; gap:12px; align-items:center;">
                         <div class="pill pill--brand" style="font-size:0.9rem;">Score: ${opp.calculated_score}</div>
+                        ${(!isArchived && hasAI) ? `<button class="btn btn--sm" id="btn-convene-board" onclick="app.runBoardAnalysis('${opp.id}')" style="background:#111; color:#fff; border:1px solid #333;"><svg class="ic" style="margin-right:6px;"><use href="#i-users"/></svg> Convene Board</button>` : ''}
                         ${!isArchived ? `<button class="btn btn--primary btn--sm" onclick="app.toggleTutor()"><svg class="ic" style="margin-right:6px;"><use href="#i-spark"/></svg> AI Tutor</button>` : ''}
                         ${!isArchived ? `<button class="btn btn--sm" onclick="app.advanceStage('${opp.id}')">Advance Stage <svg class="ic"><use href="#i-arrow"/></svg></button>` : ''}
                     </div>
@@ -448,9 +451,9 @@ const renderOpportunity = async () => {
                 ${isArchived ? `
                 <div class="card" style="margin-bottom:24px; border-left:4px solid var(--ink-faint); background:rgba(0,0,0,0.02);">
                     <h3 style="font-size:1.1rem; margin-bottom:8px;">Graveyard Post-Mortem</h3>
-                    <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:4px;"><strong>Reason:</strong> ${opp.archive_reason}</p>
-                    <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:4px;"><strong>Predicted vs Actual:</strong> ${opp.predicted_vs_actual}</p>
-                    <p style="font-size:0.9rem; color:var(--ink-soft);"><strong>Lesson:</strong> ${opp.lessons_learned}</p>
+                    <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:4px;"><strong>Reason:</strong> ${app.escapeHtml(opp.archive_reason)}</p>
+                    <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:4px;"><strong>Predicted vs Actual:</strong> ${app.escapeHtml(opp.predicted_vs_actual)}</p>
+                    <p style="font-size:0.9rem; color:var(--ink-soft);"><strong>Lesson:</strong> ${app.escapeHtml(opp.lessons_learned)}</p>
                 </div>
                 ` : ''}
                 
@@ -461,13 +464,13 @@ const renderOpportunity = async () => {
                                 <h3 style="margin:0;">Next Action</h3>
                                 ${!isArchived ? `<button class="btn btn--sm" onclick="app.editField('${opp.id}', 'next_action', 'What is the next physical action?')">Edit</button>` : ''}
                             </div>
-                            <p style="font-size:1.1rem; color:var(--ink);">${opp.next_action}</p>
+                            <p style="font-size:1.1rem; color:var(--ink);">${app.escapeHtml(opp.next_action)}</p>
                             
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; margin-top:24px;">
                                 <h3 style="margin:0; font-size:1rem; color:var(--ink-faint);">Exit Conditions</h3>
                                 ${!isArchived ? `<button class="btn btn--sm" onclick="app.editField('${opp.id}', 'exit_conditions', 'Define exit conditions (e.g. Kill if 3 prospects say no)')">Edit</button>` : ''}
                             </div>
-                            <p style="font-size:0.9rem; color:var(--ink-soft);">${opp.exit_conditions}</p>
+                            <p style="font-size:0.9rem; color:var(--ink-soft);">${app.escapeHtml(opp.exit_conditions)}</p>
                             
                             ${!isArchived ? `<button class="btn btn--sm" style="margin-top:24px; width:100%; border-color:#e0b4b4; color:#c92a2a; justify-content:center;" onclick="app.archiveOpportunity('${opp.id}')">Send to Graveyard (Archive)</button>` : ''}
                         </div>
@@ -490,17 +493,17 @@ const renderOpportunity = async () => {
                                 <div class="cell">
                                     <div class="t">Leverage</div>
                                     <div class="v">${opp.leverage || 0}/10</div>
-                                    <div style="font-size:0.75rem; color:var(--ink-soft); margin-top:6px; line-height:1.4;">${opp.leverage_text || `Driven by ${(opp.observations||[]).length} converging observations in this sector.`}</div>
+                                    <div style="font-size:0.75rem; color:var(--ink-soft); margin-top:6px; line-height:1.4;">${app.escapeHtml(opp.leverage_text) || `Driven by ${(opp.observations||[]).length} converging observations in this sector.`}</div>
                                 </div>
                                 <div class="cell">
                                     <div class="t">Velocity</div>
                                     <div class="v">${opp.velocity || 0}/10</div>
-                                    <div style="font-size:0.75rem; color:var(--ink-soft); margin-top:6px; line-height:1.4;">${opp.velocity_text || `Velocity constrained. Requires a direct validation test to unlock.`}</div>
+                                    <div style="font-size:0.75rem; color:var(--ink-soft); margin-top:6px; line-height:1.4;">${app.escapeHtml(opp.velocity_text) || `Velocity constrained. Requires a direct validation test to unlock.`}</div>
                                 </div>
                                 <div class="cell">
                                     <div class="t">Conviction</div>
                                     <div class="v">${opp.conviction || 0}/10</div>
-                                    <div style="font-size:0.75rem; color:var(--ink-soft); margin-top:6px; line-height:1.4;">${opp.conviction_text || `Medium conviction. Data is strong but lacks first-sale proof.`}</div>
+                                    <div style="font-size:0.75rem; color:var(--ink-soft); margin-top:6px; line-height:1.4;">${app.escapeHtml(opp.conviction_text) || `Medium conviction. Data is strong but lacks first-sale proof.`}</div>
                                 </div>
                             </div>
                         </div>
@@ -538,6 +541,7 @@ const renderBusinesses = async () => {
         <div class="crumb">Compounding / Business Evidence</div>
         <div class="phead">
             <h1 class="ptitle">Field Intelligence</h1>
+            <button class="btn btn--primary" onclick="app.toggleAddBusiness()">Add Entity</button>
         </div>
         <p class="psub">Track reality and trust, not just CRM data.</p>
         <div style="margin-top:24px;">`;
@@ -547,10 +551,10 @@ const renderBusinesses = async () => {
             <div class="card" style="margin-bottom:12px; cursor:pointer; border:1px solid var(--line);" onclick="app.go('BusinessDetail', '${b.id}')">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div>
-                        <h3 style="font-size:1.2rem;">${b.name}</h3>
-                        <p style="font-size:0.9rem; color:var(--ink-soft); margin-top:4px;">DM: ${b.decision_maker}</p>
+                        <h3 style="font-size:1.2rem;">${app.escapeHtml(b.name)}</h3>
+                        <p style="font-size:0.9rem; color:var(--ink-soft); margin-top:4px;">DM: ${app.escapeHtml(b.decision_maker)}</p>
                     </div>
-                    <div class="pill ${b.trust_level === 'High' ? 'pill--brand' : ''}">${b.trust_level} Trust</div>
+                    <div class="pill ${b.trust_level === 'High' ? 'pill--brand' : ''}">${app.escapeHtml(b.trust_level)} Trust</div>
                 </div>
             </div>
         `;
@@ -562,9 +566,9 @@ const renderBusinesses = async () => {
 const renderBusinessDetail = async () => {
     const biz = await NF.DB.get('businesses', NF.State.activeId);
     let opps = await NF.DB.getAll('opportunities');
-    // Filter opps linked to this business (via observations conceptually, or just all active for now if missing direct link)
-    // We will just show all active opportunities as a placeholder for linked ones since we didn't add explicit biz_id to opps in V4.
-    let linkedOpps = opps.slice(0, 2); // Mocking linked opps for now
+    // Filter opps linked to this business
+    let linkedOpps = opps.filter(o => o.linked_business_id === biz.id);
+
     
     let html = `
         <main class="main">
@@ -573,7 +577,7 @@ const renderBusinessDetail = async () => {
                 
                 <div class="phead" style="margin-bottom:24px;">
                     <div>
-                        <h1 class="ptitle">${biz.name}</h1>
+                        <h1 class="ptitle">${app.escapeHtml(biz.name)}</h1>
                     </div>
                     <button class="btn btn--primary" onclick="app.generatePrepBrief('${biz.id}')" id="btn-prep-brief"><svg class="ic" style="margin-right:6px;"><use href="#i-spark"/></svg> Prep Brief</button>
                 </div>
@@ -586,13 +590,13 @@ const renderBusinessDetail = async () => {
                         <div class="card" style="margin:0;">
                             <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">1. Who are they?</h2>
                             <div style="margin-bottom:12px; display:flex; gap:8px;">
-                                <div class="pill">DM: ${biz.decision_maker}</div>
-                                <div class="pill ${biz.trust_level === 'High' ? 'pill--brand' : ''}">Trust: ${biz.trust_level}</div>
+                                <div class="pill">DM: ${app.escapeHtml(biz.decision_maker)}</div>
+                                <div class="pill ${biz.trust_level === 'High' ? 'pill--brand' : ''}">Trust: ${app.escapeHtml(biz.trust_level)}</div>
                             </div>
-                            <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:4px;"><strong>Style:</strong> ${biz.communication_style}</p>
+                            <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:4px;"><strong>Style:</strong> ${app.escapeHtml(biz.communication_style)}</p>
                             <h3 style="font-size:0.9rem; margin-top:16px; margin-bottom:8px;">Key Contacts:</h3>
                             <ul class="list" style="padding-left:16px; margin-top:0;">
-                                ${(biz.key_contacts || []).map(c => `<li style="margin-bottom:4px;">${c}</li>`).join('')}
+                                ${(biz.key_contacts || []).map(c => `<li style="margin-bottom:4px;">${app.escapeHtml(c)}</li>`).join('')}
                                 ${(biz.key_contacts || []).length === 0 ? '<li style="color:var(--ink-faint);">None logged.</li>' : ''}
                             </ul>
                         </div>
@@ -614,11 +618,11 @@ const renderBusinessDetail = async () => {
                             <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">2. What do we know?</h2>
                             <h3 style="font-size:0.9rem; margin-bottom:8px;">The Reality / Known Patterns:</h3>
                             <ul class="list" style="padding-left:16px; margin-top:0; margin-bottom:16px;">
-                                ${(biz.known_problems || []).map(p => `<li style="margin-bottom:8px;">${p}</li>`).join('')}
+                                ${(biz.known_problems || []).map(p => `<li style="margin-bottom:8px;">${app.escapeHtml(p)}</li>`).join('')}
                             </ul>
                             <h3 style="font-size:0.9rem; margin-bottom:8px;">Objections & Leverage Points:</h3>
                             <ul class="list" style="padding-left:16px; margin-top:0;">
-                                ${(biz.objections || []).map(o => `<li style="margin-bottom:8px;">${o}</li>`).join('')}
+                                ${(biz.objections || []).map(o => `<li style="margin-bottom:8px;">${app.escapeHtml(o)}</li>`).join('')}
                                 ${(biz.objections || []).length === 0 ? '<li style="color:var(--ink-faint);">None logged.</li>' : ''}
                             </ul>
                         </div>
@@ -627,7 +631,7 @@ const renderBusinessDetail = async () => {
                             <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">4. What should I do next?</h2>
                             <div class="cell lever" style="background:var(--good-soft); border:none;">
                                 <div class="t"><svg class="ic" style="color:var(--good)"><use href="#i-arrow"/></svg> <span style="color:#256f55;">The Spearhead Move</span></div>
-                                <div class="v" style="color:#17452f; font-size:1.1rem; margin-top:8px;">${biz.next_move}</div>
+                                <div class="v" style="color:#17452f; font-size:1.1rem; margin-top:8px;">${app.escapeHtml(biz.next_move)}</div>
                             </div>
                         </div>
                     </div>
@@ -676,6 +680,15 @@ const renderSettings = async () => {
 };
 
 const app = {
+    escapeHtml: (unsafe) => {
+        if (typeof unsafe !== 'string') return unsafe;
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    },
     go: (context, id = null) => {
         NF.State.context = context;
         NF.State.activeId = id;
@@ -1080,7 +1093,45 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         }
     },
     
-    // --- End Custom Dialog Logic ---
+    // --- End Custom Dialog Logic ---    toggleAddBusiness: () => {
+        const modal = document.getElementById('add-business-backdrop');
+        if (modal.style.display === 'flex') {
+            modal.style.display = 'none';
+        } else {
+            modal.style.display = 'flex';
+            document.getElementById('add-business-name').focus();
+        }
+    },
+    
+    createBusiness: async () => {
+        const name = document.getElementById('add-business-name').value.trim();
+        const dm = document.getElementById('add-business-dm').value.trim();
+        
+        if (!name) {
+            alert('Business name is required.');
+            return;
+        }
+        
+        const id = 'biz_' + Date.now();
+        await NF.DB.put('businesses', {
+            id,
+            name,
+            decision_maker: dm || 'Unknown',
+            key_contacts: [],
+            trust_level: 'Cold',
+            communication_style: 'Direct',
+            known_problems: [],
+            objections: [],
+            active_experiments: [],
+            next_move: 'Needs Action'
+        });
+        
+        document.getElementById('add-business-name').value = '';
+        document.getElementById('add-business-dm').value = '';
+        app.toggleAddBusiness();
+        app.go('Business', id);
+    },
+
     toggleUniversalCapture: () => {
         const modal = document.getElementById('uc-backdrop');
         if (modal.style.display === 'flex') {
@@ -1218,6 +1269,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             
             app.showDialog('alert', 'Saved', signalMsg);
             app.render();
+            app.runPatternEngine().then(() => app.render());
         }
     },
     addEvidence: async (id) => {
@@ -1316,20 +1368,27 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         const title = await app.showDialog('prompt', 'Spawn Hypothesis', 'What opportunity could solve this pattern?');
         if (!title) return;
         
-        // Mock AI Scoring for V4 variables
+        const oppId = 'opp_' + Date.now();
         await NF.DB.put('opportunities', {
+            id: oppId,
             title: title,
-            leverage: Math.floor(Math.random() * 5) + 5,
-            velocity: Math.floor(Math.random() * 5) + 5,
-            conviction: Math.floor(Math.random() * 5) + 5,
-            calculated_score: Math.floor(Math.random() * 40) + 60,
+            leverage: 5,
+            velocity: 5,
+            conviction: 5,
+            calculated_score: 50,
             status: 'Validation',
             next_action: 'Define specific target audience',
             exit_conditions: 'Kill if no validation in 14 days',
             evidence: [],
             observations: pattern.observation_ids || []
         });
+        
         app.go('Pipeline');
+        
+        const hasGemini = await NF.DB.getSetting('gemini_api_key');
+        if (hasGemini) {
+            app.runAIDiagnostics(oppId).then(() => app.render());
+        }
     },
     // --- INTERACTIVE SIMULATOR ---
     _tourState: { step: 0, active: false },
