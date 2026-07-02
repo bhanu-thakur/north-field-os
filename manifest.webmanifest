@@ -18,12 +18,18 @@
       "name": "Capture Note",
       "short_name": "Capture",
       "description": "Log a quick observation",
-      "url": "/?capture=1",
-      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23A8C789' d='M12 2L2 7l10 5 10-5-10-5z'/%3E%3C/svg%3E", "sizes": "192x192", "type": "image/svg+xml" }]
+      "url": "./?capture=1",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23A8C789' d='M12 2L2 7l10 5 10-5-10-5z'/%3E%3C/svg%3E",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
     }
   ],
   "share_target": {
-    "action": "/",
+    "action": "./",
     "method": "GET",
     "enctype": "application/x-www-form-urlencoded",
     "params": {

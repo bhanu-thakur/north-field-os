@@ -187,14 +187,14 @@ const renderMorning = async () => {
 
     if (predictionsDueHtml) {
         predictionsDueHtml = `
-            <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:32px; margin-bottom:12px;">Predictions Due</h2>
+            <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:32px; margin-bottom:12px;">Predictions Due</h2>
             ${predictionsDueHtml}
         `;
     }
     
     if (dueTodayHtml) {
         dueTodayHtml = `
-            <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:#b91c1c; margin-top:32px; margin-bottom:12px;">Actions Due</h2>
+            <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:#b91c1c; margin-top:32px; margin-bottom:12px;">Actions Due</h2>
             ${dueTodayHtml}
         `;
     }
@@ -281,7 +281,7 @@ const renderMorning = async () => {
     if (revenueOpps.length > 0) {
         const closest = revenueOpps[0];
         revenueHtml = `
-            <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:32px; margin-bottom:12px;">Closest to Revenue</h2>
+            <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:32px; margin-bottom:12px;">Closest to Revenue</h2>
             <div class="card" style="padding:16px; border:1px solid var(--line); cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="app.go('Opportunity', '${closest.id}')">
                 <div>
                     <h3 style="font-size:1.1rem; color:var(--ink); margin-bottom:4px;">${closest.title}</h3>
@@ -305,7 +305,7 @@ const renderMorning = async () => {
     }
     
     let learningHtml = `
-        <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:32px; margin-bottom:12px;">Just-in-Time Learning</h2>
+        <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:32px; margin-bottom:12px;">Just-in-Time Learning</h2>
         <div id="jit-learning-container">
             <div class="card" style="padding:16px; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--primary);">
                 <h3 style="font-size:1.1rem; color:var(--ink); margin-bottom:6px;">${learningTopic}</h3>
@@ -365,7 +365,7 @@ const renderMorning = async () => {
                 ${predictionsDueHtml}
                 ${decayedPeopleHtml ? `<div style="margin-top:24px;">${decayedPeopleHtml}</div>` : ''}
                 
-                <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:12px;">The Spearhead (Highest Leverage Action)</h2>
+                <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:12px;">The Spearhead (Highest Leverage Action)</h2>
                 ${spearheadHtml}
                 
                 ${revenueHtml}
@@ -386,7 +386,7 @@ const renderEmergingPatterns = async () => {
     let activePatterns = patterns.filter(p => p.status === 'Emerging');
     if (activePatterns.length === 0) return '';
     
-    let html = `<h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:12px; margin-top:32px;">Emerging Patterns (Industry Bibles)</h2>`;
+    let html = `<h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:12px; margin-top:32px;">Emerging Patterns (Industry Bibles)</h2>`;
     let activePatternsHTML = '';
     
     for (let p of patterns.filter(pt => pt.status === 'Emerging')) {
@@ -467,11 +467,11 @@ const renderFounderIntel = async () => {
         : '<p style="color:var(--ink-faint); font-size:0.85rem;">No post-mortems logged yet. Move an opportunity to the graveyard to extract a lesson.</p>';
 
     return `
-        <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:32px; margin-bottom:12px;">Judgment Calibration (Founder Intel)</h2>
+        <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:32px; margin-bottom:12px;">Judgment Calibration (Founder Intel)</h2>
         <div class="card" style="padding:16px 20px; display:flex; gap:24px; align-items:flex-start;">
             <div style="flex:1;">
                 <div style="font-size:2rem; font-weight:700; color:${accuracy >= 50 ? 'var(--good-ink)' : 'var(--ink)'};">${accuracy}%</div>
-                <div style="font-size:0.85rem; color:var(--ink-soft); font-family:'JetBrains Mono',monospace; text-transform:uppercase;">Prediction Accuracy</div>
+                <div style="font-size:0.85rem; color:var(--ink-soft); font-family:'Roboto Mono',monospace; text-transform:uppercase;">Prediction Accuracy</div>
                 <div style="font-size:0.75rem; color:var(--ink-faint); margin-top:4px;">${success} Wins / ${archived} Graveyards</div>
             </div>
             <div style="flex:3; border-left:1px solid var(--line); padding-left:24px;">
@@ -678,7 +678,7 @@ const renderPipeline = async () => {
             
             html += `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; margin-top:24px; padding-left:8px; border-left:2px solid var(--primary);">
-                    <h3 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin:0;">${app.escapeHtml(p.title)}${dotHtml}</h3>
+                    <h3 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin:0;">${app.escapeHtml(p.title)}${dotHtml}</h3>
                     ${sparkline}
                 </div>`;
             html += `<div style="padding-left:12px; margin-bottom:24px;">`;
@@ -695,7 +695,7 @@ const renderPipeline = async () => {
     });
     
     if (standaloneOpps.length > 0) {
-        html += `<h3 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:12px; margin-top:32px; padding-left:8px; border-left:2px solid var(--line);">Ungrouped Ventures</h3>`;
+        html += `<h3 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:12px; margin-top:32px; padding-left:8px; border-left:2px solid var(--line);">Ungrouped Ventures</h3>`;
         html += `<div style="padding-left:12px; margin-bottom:24px;">`;
         
         standaloneOpps.sort((a,b) => b.calculated_score - a.calculated_score).forEach(o => {
@@ -841,7 +841,7 @@ const renderOpportunity = async () => {
                     </div>
                 </div>
                 
-                <h3 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:24px; margin-bottom:12px;">Compounding Timeline</h3>
+                <h3 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:24px; margin-bottom:12px;">Compounding Timeline</h3>
                 <div class="stepper" style="margin-bottom:16px;">
                     ${timelineHtml}
                 </div>
@@ -1248,7 +1248,7 @@ const renderBusinessDetail = async () => {
                     <!-- Question 1 & 3 -->
                     <div style="display:flex; flex-direction:column; gap:24px;">
                         <div class="card" style="margin:0;">
-                            <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">1. Who are they?</h2>
+                            <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">1. Who are they?</h2>
                             <div style="margin-bottom:12px; display:flex; gap:8px;">
                                 <div class="pill">DM: ${app.escapeHtml(biz.decision_maker)}</div>
                                 <div class="pill ${biz.trust_level === 'High' ? 'pill--brand' : ''}">Trust: ${app.escapeHtml(biz.trust_level)}</div>
@@ -1284,7 +1284,7 @@ const renderBusinessDetail = async () => {
                         
                         <div class="card" style="margin:0;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                                <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin:0;">3. What opportunities exist?</h2>
+                                <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin:0;">3. What opportunities exist?</h2>
                                 <button class="btn btn--sm" onclick="app.spawnBusinessOpportunity('${biz.id}')">Spawn</button>
                             </div>
                             ${linkedOpps.length > 0 ? linkedOpps.map(o => renderOppRow(o)).join('') : '<p style="color:var(--ink-faint); font-size:0.9rem;">No opportunities linked yet.</p>'}
@@ -1294,7 +1294,7 @@ const renderBusinessDetail = async () => {
                     <!-- Question 2 & 4 -->
                     <div style="display:flex; flex-direction:column; gap:24px;">
                         <div class="card" style="margin:0;">
-                            <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">2. What do we know?</h2>
+                            <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">2. What do we know?</h2>
                             <h3 style="font-size:0.9rem; margin-bottom:8px;">The Reality / Known Patterns:</h3>
                             <ul class="list" style="padding-left:16px; margin-top:0; margin-bottom:16px;">
                                 ${(biz.known_problems || []).map(p => `<li style="margin-bottom:8px;">${app.escapeHtml(p)}</li>`).join('')}
@@ -1307,7 +1307,7 @@ const renderBusinessDetail = async () => {
                         </div>
                         
                         <div class="card" style="margin:0; border:2px solid var(--primary-soft);">
-                            <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">4. What should I do next?</h2>
+                            <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">4. What should I do next?</h2>
                             <div class="cell lever" style="background:var(--good-soft); border:none;">
                                 <div class="t"><svg class="ic" style="color:var(--good)"><use href="#i-arrow"/></svg> <span style="color:#256f55;">The Spearhead Move</span></div>
                                 <div class="v" style="color:#17452f; font-size:1.1rem; margin-top:8px;">${app.escapeHtml(biz.next_move)}</div>
@@ -1317,11 +1317,11 @@ const renderBusinessDetail = async () => {
                 </div>
                 
                 <div class="card" style="margin-top:24px;">
-                    <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">Milestone Timeline</h2>
+                    <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">Milestone Timeline</h2>
                     <div>
                         ${(biz.milestones || []).slice().reverse().map(m => `
                             <div style="display:flex; gap:16px; margin-bottom:12px; align-items:flex-start;">
-                                <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--ink-faint); width:80px; flex:none; padding-top:4px;">${app.renderRelativeTime(new Date(m.date).getTime())}</div>
+                                <div style="font-family:'Roboto Mono',monospace; font-size:0.75rem; color:var(--ink-faint); width:80px; flex:none; padding-top:4px;">${app.renderRelativeTime(new Date(m.date).getTime())}</div>
                                 <div style="flex:1; border-left:2px solid var(--line); padding-left:16px; padding-bottom:16px; position:relative;">
                                     <div style="position:absolute; left:-6px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--primary);"></div>
                                     <div style="font-weight:600; color:var(--ink);">${app.escapeHtml(m.label)}</div>
@@ -1408,15 +1408,15 @@ const renderAnalytics = async () => {
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px;">
             <div class="card" style="padding:24px;">
                 <div style="font-size:0.85rem; color:var(--ink-soft); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Capture Streak</div>
-                <div style="font-size:2rem; font-family:'JetBrains Mono', monospace; color:var(--ink); font-weight:700;">${streak} <span style="font-size:1rem; color:var(--ink-faint);">days</span></div>
+                <div style="font-size:2rem; font-family:'Roboto Mono', monospace; color:var(--ink); font-weight:700;">${streak} <span style="font-size:1rem; color:var(--ink-faint);">days</span></div>
             </div>
             <div class="card" style="padding:24px;">
                 <div style="font-size:0.85rem; color:var(--ink-soft); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Win Rate</div>
-                <div style="font-size:2rem; font-family:'JetBrains Mono', monospace; color:var(--ink); font-weight:700;">${winRate}%</div>
+                <div style="font-size:2rem; font-family:'Roboto Mono', monospace; color:var(--ink); font-weight:700;">${winRate}%</div>
             </div>
             <div class="card" style="padding:24px;">
                 <div style="font-size:0.85rem; color:var(--ink-soft); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Active Deal Age</div>
-                <div style="font-size:2rem; font-family:'JetBrains Mono', monospace; color:var(--ink); font-weight:700;">${avgTime} <span style="font-size:1rem; color:var(--ink-faint);">avg days</span></div>
+                <div style="font-size:2rem; font-family:'Roboto Mono', monospace; color:var(--ink); font-weight:700;">${avgTime} <span style="font-size:1rem; color:var(--ink-faint);">avg days</span></div>
             </div>
         </div>
         
@@ -1553,13 +1553,13 @@ const renderSettings = async () => {
                 <div class="card" style="padding:24px; margin-top:24px;">
                     <h2 style="font-size:1.2rem; margin-bottom:8px;">Telemetry & Budgets</h2>
                     <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:16px;">Total API lifetime usage tracked locally on this device.</p>
-                    <div style="display:flex; gap:24px; margin-bottom:16px; font-family:'JetBrains Mono', monospace; font-size:1.1rem; color:var(--primary);">
+                    <div style="display:flex; gap:24px; margin-bottom:16px; font-family:'Roboto Mono', monospace; font-size:1.1rem; color:var(--primary);">
                         <div><b>${totalCalls.toLocaleString()}</b> <span style="font-size:0.8rem; color:var(--ink-soft);">Calls</span></div>
                         <div><b>${totalTokens.toLocaleString()}</b> <span style="font-size:0.8rem; color:var(--ink-soft);">Tokens (est)</span></div>
                     </div>
                     <details>
                         <summary style="cursor:pointer; color:var(--ink-faint); font-size:0.9rem; margin-bottom:8px;">View last 50 calls...</summary>
-                        <div style="max-height:200px; overflow-y:auto; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:8px; font-family:'JetBrains Mono', monospace; font-size:0.8rem;">
+                        <div style="max-height:200px; overflow-y:auto; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:8px; font-family:'Roboto Mono', monospace; font-size:0.8rem;">
                             ${recentLogs.map(l => `<div style="padding:4px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between;"><span>${new Date(l.ts).toLocaleTimeString()} - ${l.task} ${l.secondary ? '(Fallback)' : ''}</span> <span>${l.model} - ${l.tokens}t</span></div>`).join('')}
                         </div>
                     </details>
@@ -1702,14 +1702,14 @@ const renderPersonDetail = async () => {
                     <input type="text" id="person-favors" class="input" value="${app.escapeHtml((p.favors?.owed || []).join(', '))}" placeholder="e.g. Intro to VC">
                 </div>
             </div>
-            <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">Notes</h2>
+            <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">Notes</h2>
             <textarea id="person-notes" class="input" style="min-height:100px; resize:vertical; font-size:0.9rem;" placeholder="Add private notes about ${p.name}...">${p.notes || ''}</textarea>
             <div style="display:flex; justify-content:flex-end; margin-top:12px;">
                 <button class="btn btn--sm" onclick="app.savePersonNotes('${p.id}')">Save Profile</button>
             </div>
         </div>
         
-        <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:24px;">Interaction Timeline (${relatedObs.length})</h2>
+        <h2 style="font-family:'Roboto Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:24px;">Interaction Timeline (${relatedObs.length})</h2>
         <div class="stepper" style="margin-bottom:32px;">
     `;
     
@@ -1886,19 +1886,19 @@ const app = {
             let content = '';
             if (step === 1) content = `
                 <div style="font-size:3rem; margin-bottom:16px;">👋</div>
-                <h1 style="font-family:Georgia,serif; font-size:2rem; margin-bottom:16px; color:var(--ink);">Welcome to Dhaula OS</h1>
+                <h1 style="font-family:'Roboto', sans-serif; font-size:2rem; margin-bottom:16px; color:var(--ink);">Welcome to Dhaula OS</h1>
                 <p style="font-size:1.1rem; color:var(--ink-soft); max-width:400px; line-height:1.6; margin-bottom:32px;">You capture raw observations from the field. Our local Pattern Engine clusters them into emerging industry themes.</p>
                 <button class="btn btn--primary btn--lg" onclick="document.getElementById('welcome-next').click()">Next</button>
             `;
             else if (step === 2) content = `
                 <div style="font-size:3rem; margin-bottom:16px;">⚙️</div>
-                <h1 style="font-family:Georgia,serif; font-size:2rem; margin-bottom:16px; color:var(--ink);">The Engine</h1>
+                <h1 style="font-family:'Roboto', sans-serif; font-size:2rem; margin-bottom:16px; color:var(--ink);">The Engine</h1>
                 <p style="font-size:1.1rem; color:var(--ink-soft); max-width:400px; line-height:1.6; margin-bottom:32px;">When a pattern gains enough momentum, the engine promotes it. You can explicitly "Convene the Board" to debate it and spawn structured Opportunities.</p>
                 <button class="btn btn--primary btn--lg" onclick="document.getElementById('welcome-next').click()">Next</button>
             `;
             else if (step === 3) content = `
                 <div style="font-size:3rem; margin-bottom:16px;">🎯</div>
-                <h1 style="font-family:Georgia,serif; font-size:2rem; margin-bottom:16px; color:var(--ink);">The Board</h1>
+                <h1 style="font-family:'Roboto', sans-serif; font-size:2rem; margin-bottom:16px; color:var(--ink);">The Board</h1>
                 <p style="font-size:1.1rem; color:var(--ink-soft); max-width:400px; line-height:1.6; margin-bottom:32px;">Manage your active bets on the Desk through stage-gates. Kill bad ideas fast, double down on traction. Let's get to work.</p>
                 <button class="btn btn--primary btn--lg" onclick="document.getElementById('welcome-next').click()">Start</button>
             `;
@@ -1990,10 +1990,10 @@ const app = {
             }
             
             let html = '';
-            r_opps.forEach(o => html += `<div style="padding:12px; cursor:pointer; border-radius:8px;" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement); app.go('Opportunity', '${o.id}')"><div style="font-size:0.75rem; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; margin-bottom:4px;">OPPORTUNITY</div><div style="font-weight:600; color:var(--ink); line-height:1.4;">${highlight(o.title, q)}</div></div>`);
-            r_pats.forEach(p => html += `<div style="padding:12px; cursor:pointer; border-radius:8px;" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement); app.go('Pattern', '${p.id}')"><div style="font-size:0.75rem; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; margin-bottom:4px;">PATTERN</div><div style="font-weight:600; color:var(--ink); line-height:1.4;">${highlight(p.title, q)}</div></div>`);
-            r_ppl.forEach(p => html += `<div style="padding:12px; cursor:pointer; border-radius:8px;" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement); app.goPersonByName('${p.name}')"><div style="font-size:0.75rem; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; margin-bottom:4px;">PERSON</div><div style="font-weight:600; color:var(--ink); line-height:1.4;">${highlight(p.name, q)}</div></div>`);
-            r_obs.forEach(o => html += `<div style="padding:12px; cursor:pointer; border-radius:8px;" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement);"><div style="font-size:0.75rem; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; margin-bottom:4px;">OBSERVATION</div><div style="color:var(--ink-soft); font-size:0.9rem; line-height:1.5;">${highlight(o.text, q)}</div></div>`);
+            r_opps.forEach(o => html += `<div style="padding:12px; cursor:pointer; border-radius:8px;" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement); app.go('Opportunity', '${o.id}')"><div style="font-size:0.75rem; color:var(--ink-faint); font-family:'Roboto Mono',monospace; margin-bottom:4px;">OPPORTUNITY</div><div style="font-weight:600; color:var(--ink); line-height:1.4;">${highlight(o.title, q)}</div></div>`);
+            r_pats.forEach(p => html += `<div style="padding:12px; cursor:pointer; border-radius:8px;" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement); app.go('Pattern', '${p.id}')"><div style="font-size:0.75rem; color:var(--ink-faint); font-family:'Roboto Mono',monospace; margin-bottom:4px;">PATTERN</div><div style="font-weight:600; color:var(--ink); line-height:1.4;">${highlight(p.title, q)}</div></div>`);
+            r_ppl.forEach(p => html += `<div style="padding:12px; cursor:pointer; border-radius:8px;" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement); app.goPersonByName('${p.name}')"><div style="font-size:0.75rem; color:var(--ink-faint); font-family:'Roboto Mono',monospace; margin-bottom:4px;">PERSON</div><div style="font-weight:600; color:var(--ink); line-height:1.4;">${highlight(p.name, q)}</div></div>`);
+            r_obs.forEach(o => html += `<div style="padding:12px; cursor:pointer; border-radius:8px;" onclick="document.body.removeChild(this.parentElement.parentElement.parentElement);"><div style="font-size:0.75rem; color:var(--ink-faint); font-family:'Roboto Mono',monospace; margin-bottom:4px;">OBSERVATION</div><div style="color:var(--ink-soft); font-size:0.9rem; line-height:1.5;">${highlight(o.text, q)}</div></div>`);
             
             results.innerHTML = html || '<div style="padding:32px; color:var(--ink-faint); text-align:center;">No results found</div>';
         };
@@ -3683,7 +3683,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
         div.innerHTML = `
             <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
-                <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'JetBrains Mono',monospace;">Graveyard Post-Mortem</div>
+                <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Graveyard Post-Mortem</div>
                 <div style="padding:24px;">
                     <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft);">Why did this die? (Cause of death)</label>
                     <input id="pm-cause" type="text" class="input" placeholder="e.g. Lost to competitor on price" style="margin-bottom:16px;"/>
@@ -3857,7 +3857,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
         div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px; backdrop-filter:blur(10px);';
         div.innerHTML = `
             <div style="background:var(--card); width:100%; max-width:600px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
-                <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'JetBrains Mono',monospace;">Monthly Founder Review</div>
+                <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Monthly Founder Review</div>
                 <div style="padding:24px;">
                     <p style="color:var(--ink-soft); font-size:0.9rem; margin-bottom:24px;">A focused reflection on the past 30 days. No vanity metrics, only compounding truth.</p>
                     <div style="margin-bottom:16px;">
@@ -3949,7 +3949,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
                 <div style="background:#fff; width:100%; max-width:800px; border-radius:12px; padding:32px; box-shadow:0 12px 32px rgba(0,0,0,0.2); position:relative; min-height:max-content; margin:auto;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:24px; border-bottom:2px solid var(--ink); padding-bottom:16px;">
                         <div>
-                            <span style="font-weight:700; color:var(--ink); font-family:Georgia,serif; font-size:1.5rem;">YEAR IN REVIEW</span>
+                            <span style="font-weight:700; color:var(--ink); font-family:'Roboto', sans-serif; font-size:1.5rem;">YEAR IN REVIEW</span>
                             <div style="color:var(--ink-soft); font-size:0.9rem; margin-top:4px;">${new Date().getFullYear()} Annual Report</div>
                         </div>
                         <div style="display:flex; gap:12px;">
@@ -3957,7 +3957,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
                             <button class="btn btn--primary" onclick="window.print()">Print Report</button>
                         </div>
                     </div>
-                    <div style="font-family:Georgia,serif; line-height:1.6; color:var(--ink);">
+                    <div style="font-family:'Roboto', sans-serif; line-height:1.6; color:var(--ink);">
                         ${htmlRes}
                     </div>
                 </div>
@@ -3978,7 +3978,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
             div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
             div.innerHTML = `
                 <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
-                    <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'JetBrains Mono',monospace;">Log a Decision</div>
+                    <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Log a Decision</div>
                     <div style="padding:24px;">
                         <p style="font-size:0.85rem; color:var(--ink-soft); margin-bottom:16px;">Document the decision context so your future self can evaluate the thinking, not just the outcome.</p>
                         <div style="margin-bottom:16px;">
@@ -4029,7 +4029,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
             div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
             div.innerHTML = `
                 <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
-                    <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'JetBrains Mono',monospace;">Log a Prediction</div>
+                    <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Log a Prediction</div>
                     <div style="padding:24px;">
                         <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft);">What do you predict will happen?</label>
                         <input id="pred-statement" type="text" class="input" placeholder="e.g. 5 customers will buy" style="margin-bottom:16px;"/>
@@ -4092,7 +4092,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
             div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
             div.innerHTML = `
                 <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
-                    <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'JetBrains Mono',monospace;">Spawn Opportunity</div>
+                    <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Spawn Opportunity</div>
                     <div style="padding:24px;">
                         <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft);">Title</label>
                         <input id="spawn-title" type="text" class="input" value="${app.escapeHtml(oppObj.title)}" style="margin-bottom:16px;"/>
@@ -4140,7 +4140,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
                 div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
                 div.innerHTML = `
                     <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
-                        <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'JetBrains Mono',monospace;">Opportunity Cost Check</div>
+                        <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Opportunity Cost Check</div>
                         <div style="padding:24px;">
                             <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:16px;">You are currently pursuing these top deals:</p>
                             <ul style="list-style:none; padding:0; margin:0 0 24px 0;">
