@@ -6,6 +6,52 @@ NF.State = {
     activeId: null // Used for routing to specific Opportunity/Business
 };
 
+NF.UI = {
+    toast: (msg, opts = {}) => {
+        const root = document.getElementById('toast-root');
+        if (!root) return;
+        
+        const duration = opts.duration || 4000;
+        
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.innerHTML = `<span>${app.escapeHtml(msg)}</span>`;
+        
+        if (opts.action) {
+            const btn = document.createElement('span');
+            btn.className = 'toast-action';
+            btn.textContent = opts.action.label;
+            btn.onclick = () => {
+                opts.action.fn();
+                t.classList.add('hiding');
+                setTimeout(() => t.remove(), 200);
+            };
+            t.appendChild(btn);
+        }
+        
+        // Tap to dismiss
+        t.addEventListener('click', (e) => {
+            if (e.target.classList.contains('toast-action')) return;
+            t.classList.add('hiding');
+            setTimeout(() => t.remove(), 200);
+        });
+        
+        root.appendChild(t);
+        
+        // Stack max 2
+        while (root.children.length > 2) {
+            root.removeChild(root.firstChild);
+        }
+        
+        setTimeout(() => {
+            if (document.body.contains(t)) {
+                t.classList.add('hiding');
+                setTimeout(() => t.remove(), 200);
+            }
+        }, duration);
+    }
+};
+
 const LIFECYCLE = ['Validation','First Sale','Delivery','SOP','Operator','Automation','Software'];
 const computeScore = (leverage, velocity, conviction) => Math.round(((leverage * 0.5) + (velocity * 0.3) + (conviction * 0.2)) * 10);
 
@@ -14,7 +60,7 @@ const renderSidebar = () => {
         <aside class="side">
             <a href="#" class="brand">
                 <div class="mark" style="background:#111;"><svg class="ic" style="color:#fff;"><use href="#i-compass"/></svg></div>
-                <div class="bt">North<small>V5 Engine</small></div>
+                <div class="bt">North<small>V4 Engine</small></div>
             </a>
             <div class="seek" onclick="app.showDialog('alert', 'Feature Placeholder', 'Universal Command opens spotlight')">
                 <svg class="ic"><use href="#i-search"/></svg>
@@ -49,9 +95,9 @@ const renderSidebar = () => {
                 <svg class="ic"><use href="#i-building"/></svg>
                 <span>Dossiers</span>
             </a>
-            <a onclick="app.toggleUniversalCapture()">
-                <svg class="ic"><use href="#i-bulb"/></svg>
-                <span>Capture</span>
+            <a class="${NF.State.context === 'Settings' || NF.State.context === 'Discovery' ? 'active' : ''}" onclick="app.toggleMoreMenu()">
+                <svg class="ic"><use href="#i-grid"/></svg>
+                <span>More</span>
             </a>
         </nav>
     `;
@@ -75,6 +121,53 @@ const renderMorning = async () => {
                     <button class="btn btn--sm" style="background:var(--primary); color:#fff; border:none;" onclick="app.go('Settings')">Go to Settings</button>
                     <button class="btn btn--sm" style="border:none; color:var(--primary);" onclick="app.dismissBackupBanner()">Dismiss</button>
                 </div>
+            </div>
+        `;
+    }
+    
+    // Calculate Predictions & Kill Dates
+    const todayStr = new Date().toISOString().split('T')[0];
+    let killDateCount = 0;
+    let predictionsDueHtml = '';
+    
+    opps.forEach(o => {
+        if (o.status !== 'Archived') {
+            if (o.exit_deadline && o.exit_deadline < todayStr) killDateCount++;
+            
+            if (o.predictions && o.predictions.length > 0) {
+                o.predictions.forEach(p => {
+                    if (p.status === 'pending' && p.resolve_date <= todayStr) {
+                        predictionsDueHtml += `
+                            <div class="card" style="margin-bottom:8px; border-left:4px solid var(--warning); padding:16px;">
+                                <div style="font-size:0.85rem; color:var(--ink-soft); margin-bottom:4px;">Opportunity: <strong>${app.escapeHtml(o.title)}</strong></div>
+                                <div style="font-size:1.1rem; color:var(--ink); margin-bottom:12px;">"${app.escapeHtml(p.statement)}"</div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:0.85rem; color:var(--ink-soft);">Confidence: ${p.confidence}%</span>
+                                    <div style="display:flex; gap:8px;">
+                                        <button class="btn btn--sm" style="background:#fee2e2; color:#991b1b; border:none;" onclick="app.resolvePrediction('${o.id}', '${p.id}', false)">Wrong</button>
+                                        <button class="btn btn--sm" style="background:#dcfce7; color:#166534; border:none;" onclick="app.resolvePrediction('${o.id}', '${p.id}', true)">Right</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+        }
+    });
+
+    if (predictionsDueHtml) {
+        predictionsDueHtml = `
+            <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:32px; margin-bottom:12px;">Predictions Due</h2>
+            ${predictionsDueHtml}
+        `;
+    }
+
+    let killDateHtml = '';
+    if (killDateCount > 0) {
+        killDateHtml = `
+            <div style="background:#fee2e2; color:#991b1b; padding:12px 16px; border-radius:8px; margin-bottom:24px; font-weight:600; display:flex; align-items:center;">
+                <svg class="ic" style="margin-right:8px;"><use href="#i-arrow"/></svg> ${killDateCount} deal${killDateCount > 1 ? 's' : ''} past kill date. Review Pipeline immediately.
             </div>
         `;
     }
@@ -173,9 +266,13 @@ const renderMorning = async () => {
                 <div class="crumb">System / Morning Briefing</div>
                 <h1 class="ptitle" style="margin-bottom:8px;">Good Morning.</h1>
                 
+                ${killDateHtml}
+                
                 <div style="padding:16px 20px; background:rgba(0,0,0,0.02); border-radius:12px; margin-bottom:32px; font-family:'Fraunces',serif; font-size:1.1rem; color:var(--ink); border-left:4px solid var(--ink-faint);">
                     ${mentorMessage}
                 </div>
+                
+                ${predictionsDueHtml}
                 
                 <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:12px;">The Spearhead (Highest Leverage Action)</h2>
                 ${spearheadHtml}
@@ -290,7 +387,7 @@ const renderJitLearning = async () => {
     
     const res = await NF.AI.generateContent(prompt, { taskClass: 'brief' });
     if (!res || !res.ok) {
-        app.showDialog('alert', 'AI Error', 'Failed to generate prep brief: ' + (res?.error || 'unknown'));
+        NF.UI.toast('Failed to generate prep brief: ' + (res?.error || 'unknown'));
         return null;
     }
     
@@ -347,6 +444,30 @@ const renderDiscovery = async () => {
     return html;
 };
 
+const renderOppRow = (o) => {
+    const isArchived = o.status === 'Archived';
+    return `
+        <div class="card opp-row" data-id="${o.id}" style="margin-bottom:8px; padding:0; overflow:hidden; position:relative; opacity:${isArchived ? '0.6' : '1'};">
+            <div class="swipe-bg swipe-bg-archive" style="position:absolute; inset:0; background:#c92a2a; color:#fff; display:flex; align-items:center; padding:0 24px; font-weight:bold; justify-content:flex-end; z-index:0;">Archive</div>
+            <div class="swipe-bg swipe-bg-advance" style="position:absolute; inset:0; background:#2b8a3e; color:#fff; display:flex; align-items:center; padding:0 24px; font-weight:bold; justify-content:flex-start; z-index:0;">Advance</div>
+            <div class="opp-card-inner" style="background:var(--card); position:relative; z-index:2; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; transition: transform 0.2s;" 
+                ontouchstart="app.handleSwipeStart(event)" 
+                ontouchmove="app.handleSwipeMove(event)" 
+                ontouchend="app.handleSwipeEnd(event, '${o.id}')">
+                <div style="cursor:pointer; flex:1;" onclick="app.go('Opportunity', '${o.id}')">
+                    <div style="font-weight:600; color:var(--ink); ${isArchived ? 'text-decoration:line-through;' : ''}">${o.title}</div>
+                    <div style="font-size:0.85rem; color:var(--ink-soft); margin-top:4px;">Stage: ${o.status}</div>
+                    ${o.bias_flag ? `<div style="margin-top:8px; font-size:0.8rem; background:#fef08a; color:#854d0e; padding:4px 8px; border-radius:4px; display:inline-block;"><strong>Bias Flag:</strong> ${app.escapeHtml(o.bias_flag)}</div>` : ''}
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="pill ${isArchived ? '' : 'pill--brand'}">Score: ${o.calculated_score}</div>
+                    <button class="btn btn--sm" style="border:none; padding:4px 8px; color:#c92a2a; background:transparent;" onclick="app.deleteItem('opportunities', '${o.id}')">Delete</button>
+                </div>
+            </div>
+        </div>
+    `;
+};
+
 const renderPipeline = async () => {
     let opps = await NF.DB.getAll('opportunities');
     let patterns = await NF.DB.getAll('patterns');
@@ -371,19 +492,7 @@ const renderPipeline = async () => {
             html += `<div style="padding-left:12px; margin-bottom:24px;">`;
             
             patternOpps.sort((a,b) => b.calculated_score - a.calculated_score).forEach(o => {
-                const isArchived = o.status === 'Archived';
-                html += `
-                    <div class="card" style="margin-bottom:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; opacity:${isArchived ? '0.6' : '1'};">
-                        <div style="cursor:pointer; flex:1;" onclick="app.go('Opportunity', '${o.id}')">
-                            <div style="font-weight:600; color:var(--ink); ${isArchived ? 'text-decoration:line-through;' : ''}">${o.title}</div>
-                            <div style="font-size:0.85rem; color:var(--ink-soft); margin-top:4px;">Stage: ${o.status}</div>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <div class="pill ${isArchived ? '' : 'pill--brand'}">Score: ${o.calculated_score}</div>
-                            <button class="btn btn--sm" style="border:none; padding:4px 8px; color:#c92a2a; background:transparent;" onclick="app.deleteItem('opportunities', '${o.id}')">Delete</button>
-                        </div>
-                    </div>
-                `;
+                html += renderOppRow(o);
             });
             html += `</div>`;
         }
@@ -394,23 +503,11 @@ const renderPipeline = async () => {
     });
     
     if (standaloneOpps.length > 0) {
-        html += `<h3 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:12px; margin-top:24px; padding-left:8px; border-left:2px solid var(--primary);">Standalone Opportunities</h3>`;
+        html += `<h3 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:12px; margin-top:32px; padding-left:8px; border-left:2px solid var(--line);">Ungrouped Ventures</h3>`;
         html += `<div style="padding-left:12px; margin-bottom:24px;">`;
         
         standaloneOpps.sort((a,b) => b.calculated_score - a.calculated_score).forEach(o => {
-            const isArchived = o.status === 'Archived';
-            html += `
-                <div class="card" style="margin-bottom:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; opacity:${isArchived ? '0.6' : '1'};">
-                    <div style="cursor:pointer; flex:1;" onclick="app.go('Opportunity', '${o.id}')">
-                        <div style="font-weight:600; color:var(--ink); ${isArchived ? 'text-decoration:line-through;' : ''}">${o.title}</div>
-                        <div style="font-size:0.85rem; color:var(--ink-soft); margin-top:4px;">Stage: ${o.status}</div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <div class="pill ${isArchived ? '' : 'pill--brand'}">Score: ${o.calculated_score}</div>
-                        <button class="btn btn--sm" style="border:none; padding:4px 8px; color:#c92a2a; background:transparent;" onclick="app.deleteItem('opportunities', '${o.id}')">Delete</button>
-                    </div>
-                </div>
-            `;
+            html += renderOppRow(o);
         });
         html += `</div>`;
     }
@@ -435,6 +532,32 @@ const renderOpportunity = async () => {
     if (!opp) return app.go('Pipeline');
     
     const isArchived = opp.status === 'Archived';
+    const todayStr = new Date().toISOString().split('T')[0];
+    const isKillDatePassed = opp.exit_deadline && opp.exit_deadline < todayStr && !isArchived;
+    
+    // Predictions HTML
+    let predictionsHtml = `<div class="card" style="margin-top:24px; border-left:4px solid var(--primary); background:rgba(0,0,0,0.02);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="margin:0;">Predictions</h3>
+            ${!isArchived ? `<button class="btn btn--sm" onclick="app.logPrediction('${opp.id}')">Log Prediction</button>` : ''}
+        </div>
+        <ul class="list" style="margin:0; padding-left:16px;">`;
+    if (opp.predictions && opp.predictions.length > 0) {
+        opp.predictions.forEach(p => {
+            let statusBadge = '';
+            if (p.status === 'right') statusBadge = `<span class="pill" style="background:#dcfce7; color:#166534; font-size:0.7em;">Right</span>`;
+            else if (p.status === 'wrong') statusBadge = `<span class="pill" style="background:#fee2e2; color:#991b1b; font-size:0.7em;">Wrong</span>`;
+            else statusBadge = `<span class="pill" style="background:#f1f5f9; color:#475569; font-size:0.7em;">Pending</span>`;
+            
+            predictionsHtml += `<li style="margin-bottom:8px;">
+                <div style="font-size:0.9rem;">${app.escapeHtml(p.statement)} ${statusBadge}</div>
+                <div style="font-size:0.75rem; color:var(--ink-soft);">Confidence: ${p.confidence}% | Resolves: ${app.escapeHtml(p.resolve_date)}</div>
+            </li>`;
+        });
+    } else {
+        predictionsHtml += `<li style="color:var(--ink-faint); font-size:0.85rem; list-style:none; margin-left:-16px;">No predictions logged.</li>`;
+    }
+    predictionsHtml += `</ul></div>`;
     const apiKey = await NF.DB.getSetting('gemini_api_key', '');
     const hasAI = !!apiKey;
     
@@ -453,6 +576,8 @@ const renderOpportunity = async () => {
             <div class="wrap">
                 <div class="crumb"><a href="#" onclick="app.go('Pipeline')">Pipeline</a> / Opportunity Execution</div>
                 
+                ${isKillDatePassed ? `<div style="background:#fee2e2; color:#991b1b; padding:12px 16px; border-radius:8px; margin-top:16px; font-weight:600; display:flex; align-items:center;"><svg class="ic" style="margin-right:8px;"><use href="#i-arrow"/></svg> Kill Date Passed (${app.escapeHtml(opp.exit_deadline)})</div>` : ''}
+                
                 <div class="phead" style="align-items:center;">
                     <div>
                         <h1 class="ptitle" style="${isArchived ? 'text-decoration:line-through; color:var(--ink-faint);' : ''}">${app.escapeHtml(opp.title)}</h1>
@@ -461,7 +586,9 @@ const renderOpportunity = async () => {
                     <div style="display:flex; gap:12px; align-items:center;">
                         <div class="pill pill--brand" style="font-size:0.9rem;">Score: ${opp.calculated_score}${opp.score_source === 'fallback' ? ' <span style="opacity:0.8; font-size:0.8em; margin-left:4px;">est.</span>' : ''}</div>
                         ${!isArchived ? (hasAI 
-                            ? `<button class="btn btn--sm" id="btn-convene-board" onclick="app.runBoardAnalysis('${opp.id}')" style="background:#111; color:#fff; border:1px solid #333;"><svg class="ic" style="margin-right:6px;"><use href="#i-users"/></svg> Convene Board</button>`
+                            ? `<button class="btn btn--sm" id="btn-convene-board" onclick="app.runBoardAnalysis('${opp.id}')" style="background:#111; color:#fff; border:1px solid #333;"><svg class="ic" style="margin-right:6px;"><use href="#i-users"/></svg> Convene Board</button>
+                               <button class="btn btn--sm" id="btn-red-team" onclick="app.runRedTeam('${opp.id}')" style="background:#991b1b; color:#fff; border:1px solid #7f1d1d;"><svg class="ic" style="margin-right:6px;"><use href="#i-target"/></svg> Red Team</button>
+                               <button class="btn btn--sm" id="btn-pre-mortem" onclick="app.runPreMortem('${opp.id}')" style="background:#475569; color:#fff; border:1px solid #334155;"><svg class="ic" style="margin-right:6px;"><use href="#i-bulb"/></svg> Pre-Mortem</button>`
                             : `<button class="btn btn--sm" id="btn-convene-board" style="background:#333; color:#888; border:1px solid #444; cursor:not-allowed;" title="API Key Required"><svg class="ic" style="margin-right:6px;"><use href="#i-users"/></svg> Convene Board</button>`
                         ) : ''}
                         ${!isArchived ? `<button class="btn btn--primary btn--sm" onclick="app.toggleTutor()"><svg class="ic" style="margin-right:6px;"><use href="#i-spark"/></svg> AI Tutor</button>` : ''}
@@ -472,6 +599,42 @@ const renderOpportunity = async () => {
                 <h3 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); margin-top:24px; margin-bottom:12px;">Compounding Timeline</h3>
                 <div class="stepper" style="margin-bottom:32px;">
                     ${timelineHtml}
+                </div>
+                
+                ${opp.bias_flag ? `
+                <div style="margin-bottom:32px; background:#fef08a; border-left:4px solid #eab308; border-radius:4px; padding:12px 16px;">
+                    <h4 style="font-size:0.85rem; text-transform:uppercase; color:#854d0e; margin-bottom:8px; letter-spacing:0.05em;">Founder Bias Detected</h4>
+                    <p style="font-size:0.9rem; color:#713f12;">${app.escapeHtml(opp.bias_flag)}</p>
+                </div>` : ''}
+                
+                <div id="board-analysis-container">
+                    ${opp.board_analysis ? `
+                    <div style="margin-bottom:32px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:16px;">
+                        <h4 style="font-size:0.85rem; text-transform:uppercase; color:var(--ink-soft); margin-bottom:12px; letter-spacing:0.05em;">Board Directives</h4>
+                        <div class="grid" style="grid-template-columns:1fr 1fr; gap:12px;">
+                            <div style="font-size:0.85rem; padding:8px; background:rgba(29,78,216,0.05); border-left:3px solid #1d4ed8; color:var(--ink);"><strong>CEO:</strong> ${opp.board_analysis.ceo}</div>
+                            <div style="font-size:0.85rem; padding:8px; background:rgba(21,128,61,0.05); border-left:3px solid #15803d; color:var(--ink);"><strong>CFO:</strong> ${opp.board_analysis.cfo}</div>
+                            <div style="font-size:0.85rem; padding:8px; background:rgba(107,33,168,0.05); border-left:3px solid #6b21a8; color:var(--ink);"><strong>CTO:</strong> ${opp.board_analysis.cto}</div>
+                            <div style="font-size:0.85rem; padding:8px; background:rgba(194,65,12,0.05); border-left:3px solid #c2410c; color:var(--ink);"><strong>CPO:</strong> ${opp.board_analysis.cpo}</div>
+                        </div>
+                    </div>` : ''}
+                </div>
+                
+                <div id="red-team-container">
+                    ${opp.red_team ? `
+                    <div style="margin-bottom:32px; background:#fff; border:1px solid #fecaca; border-radius:8px; padding:16px; border-left:4px solid #ef4444;">
+                        <h4 style="font-size:0.85rem; text-transform:uppercase; color:#b91c1c; margin-bottom:12px; letter-spacing:0.05em;">Red Team Analysis</h4>
+                        <p style="font-size:0.9rem; margin-bottom:8px;"><strong>Strongest case against:</strong> ${app.escapeHtml(opp.red_team.strongest_case_against)}</p>
+                        <p style="font-size:0.9rem; color:var(--ink-soft);"><strong>Cheapest falsifying test:</strong> ${app.escapeHtml(opp.red_team.cheapest_falsifying_test)}</p>
+                    </div>` : ''}
+                </div>
+                
+                <div id="pre-mortem-container">
+                    ${opp.pre_mortem ? `
+                    <div style="margin-bottom:32px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:16px;">
+                        <h4 style="font-size:0.85rem; text-transform:uppercase; color:#334155; margin-bottom:12px; letter-spacing:0.05em;">Pre-Mortem</h4>
+                        <p style="font-size:0.9rem; color:var(--ink-soft);">${app.escapeHtml(opp.pre_mortem.failure_reason)}</p>
+                    </div>` : ''}
                 </div>
                 
                 ${isArchived ? `
@@ -497,6 +660,9 @@ const renderOpportunity = async () => {
                                 ${!isArchived ? `<button class="btn btn--sm" onclick="app.editField('${opp.id}', 'exit_conditions', 'Define exit conditions (e.g. Kill if 3 prospects say no)')">Edit</button>` : ''}
                             </div>
                             <p style="font-size:0.9rem; color:var(--ink-soft);">${app.escapeHtml(opp.exit_conditions)}</p>
+                            ${opp.exit_deadline ? `<p style="font-size:0.85rem; color:var(--ink-soft); margin-top:8px;"><strong>Kill Date:</strong> ${app.escapeHtml(opp.exit_deadline)}</p>` : ''}
+                            
+                            ${predictionsHtml}
                             
                             ${!isArchived ? `<button class="btn btn--sm" style="margin-top:24px; width:100%; border-color:#e0b4b4; color:#c92a2a; justify-content:center;" onclick="app.archiveOpportunity('${opp.id}')">Send to Graveyard (Archive)</button>` : ''}
                         </div>
@@ -515,7 +681,7 @@ const renderOpportunity = async () => {
                                 <h3 style="font-size:1rem; margin:0;">AI Scoring Engine (V4)</h3>
                                 ${!isArchived ? `<button class="btn btn--sm" id="btn-run-diagnostics" onclick="app.runAIDiagnostics('${opp.id}')"><svg class="ic" style="margin-right:4px;"><use href="#i-spark"/></svg> Run Diagnostics</button>` : ''}
                             </div>
-                            <div class="minigrid" style="--m: 3;">
+                            <div id="diagnostics-container" class="minigrid" style="--m: 3;">
                                 <div class="cell">
                                     <div class="t">Leverage</div>
                                     <div class="v">${opp.leverage || 0}/10</div>
@@ -632,12 +798,7 @@ const renderBusinessDetail = async () => {
                                 <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin:0;">3. What opportunities exist?</h2>
                                 <button class="btn btn--sm" onclick="app.spawnBusinessOpportunity('${biz.id}')">Spawn</button>
                             </div>
-                            ${linkedOpps.length > 0 ? linkedOpps.map(o => `
-                                <div style="padding:12px; border:1px solid var(--line); border-radius:8px; margin-bottom:8px; cursor:pointer;" onclick="app.go('Opportunity', '${o.id}')">
-                                    <h3 style="font-size:0.95rem; margin-bottom:4px; color:var(--ink);">${o.title}</h3>
-                                    <div class="pill pill--brand" style="font-size:0.7rem;">${o.status}</div>
-                                </div>
-                            `).join('') : '<p style="color:var(--ink-faint); font-size:0.9rem;">No opportunities linked yet.</p>'}
+                            ${linkedOpps.length > 0 ? linkedOpps.map(o => renderOppRow(o)).join('') : '<p style="color:var(--ink-faint); font-size:0.9rem;">No opportunities linked yet.</p>'}
                         </div>
                     </div>
                     
@@ -699,6 +860,9 @@ const renderSettings = async () => {
                     <label style="display:flex; align-items:center; font-size:0.85rem; font-weight:600; margin-bottom:8px;">Gemini API Key ${keyBadge}</label>
                     <input type="password" id="setting-api-key" value="" class="input" style="width:100%; max-width:400px; margin-bottom:16px;" placeholder="AIzaSy...">
                     
+                    <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft); font-weight:600;">Known Biases (One per line)</label>
+                    <textarea id="setting-biases" class="input" style="width:100%; max-width:400px; min-height:80px; margin-bottom:16px;" placeholder="e.g. Overestimates demand\nUnderestimates build time">${app.escapeHtml(((await NF.DB.getSetting('founder_intel')) || {}).biases ? ((await NF.DB.getSetting('founder_intel')) || {}).biases.join('\n') : '')}</textarea>
+                    
                     <div>
                         <button class="btn btn--primary" onclick="app.saveSettings()">Save Settings</button>
                         <button class="btn btn--sm" style="margin-left:8px;" onclick="app.testAPIConnection()"><svg class="ic" style="margin-right:4px;"><use href="#i-spark"/></svg> Test Connection</button>
@@ -741,7 +905,7 @@ const app = {
         app.render();
     },
     exportBackup: async () => {
-        app.showDialog('alert', 'Exporting...', 'Preparing your backup file...');
+        NF.UI.toast('Preparing your backup file...');
         await NF.DB.exportAll();
         app.render();
     },
@@ -753,12 +917,12 @@ const app = {
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
-                app.showDialog('alert', 'Restoring...', 'Merging backup data. Please wait...');
+                NF.UI.toast('Merging backup data. Please wait...');
                 await NF.DB.importAll(e.target.result);
-                app.showDialog('alert', 'Success', 'Backup restored successfully.');
+                NF.UI.toast('Backup restored successfully.');
                 app.render();
             } catch (err) {
-                app.showDialog('alert', 'Import Error', err.message || 'Corrupt or invalid backup file.');
+                NF.UI.toast(err.message || 'Corrupt or invalid backup file.');
             }
         };
         reader.readAsText(file);
@@ -792,6 +956,20 @@ const app = {
         
         root.innerHTML = html;
         
+        // Add FAB for mobile capture
+        root.innerHTML += `<button class="fab-mobile" onclick="app.toggleUniversalCapture()"><svg class="ic"><use href="#i-bulb"/></svg></button>`;
+        
+        // Add Mobile More Menu
+        root.innerHTML += `
+        <div id="mobnav-more" onclick="if(event.target===this) app.toggleMoreMenu()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9998; align-items:flex-end;">
+            <div style="width:100%; background:var(--card); border-radius:16px 16px 0 0; padding-bottom:env(safe-area-inset-bottom);">
+                <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600;">More Options</div>
+                <a class="navlink" onclick="app.toggleMoreMenu(); app.go('Discovery')" style="display:flex; padding:16px 24px; border-bottom:1px solid var(--line); align-items:center; gap:12px; color:var(--ink); text-decoration:none;"><svg class="ic"><use href="#i-bulb"/></svg> Discovery Feed</a>
+                <a class="navlink" onclick="app.toggleMoreMenu(); app.go('Settings')" style="display:flex; padding:16px 24px; border-bottom:1px solid var(--line); align-items:center; gap:12px; color:var(--ink); text-decoration:none;"><svg class="ic"><use href="#i-target"/></svg> Settings & AI</a>
+                <a class="navlink" onclick="app.toggleMoreMenu(); app.startSimulator()" style="display:flex; padding:16px 24px; align-items:center; gap:12px; color:var(--primary); text-decoration:none;"><svg class="ic"><use href="#i-star"/></svg> Run Simulator</a>
+            </div>
+        </div>`;
+        
         // Post-render injections
         if (NF.State.context === 'Morning') {
             const patternContainer = document.getElementById('emerging-patterns-container');
@@ -814,16 +992,15 @@ const app = {
         if (apiKey !== "") {
             await NF.DB.setSetting('gemini_api_key', apiKey);
         }
-        app.showDialog('alert', 'Settings Saved', 'API Key has been securely saved to local storage.');
+        
+        const biases = document.getElementById('setting-biases').value.split('\n').map(s => s.trim()).filter(Boolean);
+        let intel = await NF.DB.getSetting('founder_intel') || {};
+        intel.biases = biases;
+        await NF.DB.putSetting('founder_intel', intel);
+        
+        NF.UI.toast('Settings have been saved.');
     },
     _patternEngineTimer: null,
-    toast: (msg) => {
-        let t = document.createElement('div');
-        t.textContent = msg;
-        t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:24px;z-index:9999;font-size:0.9rem;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
-        document.body.appendChild(t);
-        setTimeout(() => t.remove(), 4000);
-    },
     generateJSON: async (prompt, opts) => {
         let currentPrompt = prompt;
         for (let i = 0; i < 2; i++) {
@@ -835,20 +1012,20 @@ const app = {
             currentPrompt = prompt + "\n\nReturn ONLY valid JSON. No prose.";
             console.warn("AI returned malformed JSON, retrying...");
         }
-        app.toast("AI returned an unreadable answer — tap to retry");
+        NF.UI.toast("AI returned an unreadable answer — tap to retry");
         return null;
     },
     testAPIConnection: async () => {
         const apiKey = await NF.DB.getSetting('gemini_api_key');
         if (!apiKey) {
-            return app.showDialog('alert', 'Error', 'Please save an API key first.');
+            return NF.UI.toast('Please save an API key first.');
         }
-        app.showDialog('alert', 'Testing...', 'Sending a test ping to Gemini API...');
+        NF.UI.toast('Sending a test ping to Gemini API...');
         const res = await NF.AI.generateContent("Reply with the word 'SUCCESS' if you receive this message.", { taskClass: 'chat' });
         if (res.ok && res.text.includes('SUCCESS')) {
-            app.showDialog('alert', 'Connection Successful', 'The Gemini API is working perfectly.');
+            NF.UI.toast('The Gemini API is working perfectly.');
         } else {
-            app.showDialog('alert', 'Connection Failed', 'Failed to connect. Please verify your API key and internet connection.');
+            NF.UI.toast('Failed to connect. Please verify your API key and internet connection.');
         }
     },
     runPatternEngine: async () => {
@@ -887,10 +1064,9 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
                                     await NF.DB.put('observations', o);
                                 }
                             }
-                            console.log(`Gemini AI Engine: Detected cross-domain pattern: ${cluster.title}`);
-                        }
+                        console.log(`Gemini AI Engine: Detected cross-domain pattern: ${cluster.title}`);
                     }
-                } catch(e) { console.error('Gemini parse error in Pattern Engine', e); }
+                }
             }
             return; // Skip local JS grouping since Gemini handled it
         }
@@ -940,7 +1116,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         const hasGemini = await NF.DB.getSetting('gemini_api_key');
         
         if (!hasGemini) {
-            app.showDialog('alert', 'API Key Required', 'Please configure your Gemini API Key in Settings to generate an AI Prep Brief.');
+            NF.UI.toast('Please configure your Gemini API Key in Settings to generate an AI Prep Brief.');
             return;
         }
         
@@ -960,9 +1136,9 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         Problems: ${(biz.known_problems||[]).join(', ')}
         Objections: ${(biz.objections||[]).join(', ')}
         Next Move: ${biz.next_move}`;
-        
+        container.innerHTML = '<div class="skeleton"></div>';
         const res = await NF.AI.generateContent(prompt, { taskClass: 'brief' });
-        if (res.ok) {
+        if (res && res.ok) {
             let htmlRes = res.text.replace(/```html/gi, '').replace(/```/g, '').trim();
             container.innerHTML = `
                 <div class="card" style="border:1px solid var(--primary-soft); background:var(--card); border-left:4px solid var(--primary);">
@@ -971,7 +1147,10 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
                 </div>
             `;
         } else {
-            app.showDialog('alert', 'Generation Failed', 'Could not generate brief. Please verify your API key and connection.');
+            container.innerHTML = `<div class="retry-block">
+                <span>Failed to generate brief.</span>
+                <button onclick="app.generatePrepBrief('${bizId}')">Retry</button>
+            </div>`;
         }
         
         if (btn) btn.innerHTML = '<svg class="ic" style="margin-right:6px;"><use href="#i-spark"/></svg> Prep Brief';
@@ -981,7 +1160,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         const hasGemini = await NF.DB.getSetting('gemini_api_key');
         
         if (!hasGemini) {
-            app.showDialog('alert', 'API Key Required', 'Please configure your Gemini API Key in Settings to run AI Diagnostics.');
+            NF.UI.toast('Please configure your Gemini API Key in Settings to run AI Diagnostics.');
             return;
         }
         
@@ -989,43 +1168,39 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         
         const opp = await NF.DB.get('opportunities', oppId);
         
+        const container = document.getElementById('diagnostics-container');
+        if (container) container.innerHTML = '<div class="skeleton" style="grid-column: 1 / -1; min-height:80px;"></div>';
+        
         const prompt = `Act as a ruthless startup advisor. Evaluate this opportunity and score it strictly from 1 to 10 for Leverage, Velocity, and Conviction.
         Leverage: High upside, low relative effort?
         Velocity: Can we move fast, or are we blocked?
         Conviction: Is the evidence strong?
         
-        Opportunity: ${opp.title}
-        Status: ${opp.status}
-        Next Action: ${opp.next_action}
-        Exit Conditions: ${opp.exit_conditions}
-        Observations Count: ${(opp.observations||[]).length}
+        Context: "${opp.title}"
+        Observations: ${opp.observations.join('; ')}
         
-        You MUST return ONLY a raw JSON object in this exact format (no markdown, no backticks, no other text):
-        {
-          "leverage": 8,
-          "leverage_text": "High upside due to...",
-          "velocity": 4,
-          "velocity_text": "Blocked by...",
-          "conviction": 6,
-          "conviction_text": "Evidence suggests..."
-        }
+        Return ONLY valid JSON like: {"leverage": 8, "leverage_text": "...", "velocity": 3, "velocity_text": "...", "conviction": 9, "conviction_text": "..."}
         `;
         
         const scores = await app.generateJSON(prompt, { taskClass: 'board' });
         if (scores) {
             opp.leverage = scores.leverage;
-                opp.leverage_text = scores.leverage_text;
-                opp.velocity = scores.velocity;
-                opp.velocity_text = scores.velocity_text;
-                opp.conviction = scores.conviction;
-                opp.conviction_text = scores.conviction_text;
-                
-                // Recalculate score
-                opp.calculated_score = computeScore(opp.leverage, opp.velocity, opp.conviction);
-                opp.score_source = 'ai';
-                
+            opp.leverage_text = scores.leverage_text;
+            opp.velocity = scores.velocity;
+            opp.velocity_text = scores.velocity_text;
+            opp.conviction = scores.conviction;
+            opp.conviction_text = scores.conviction_text;
+            
+            opp.calculated_score = computeScore(opp.leverage, opp.velocity, opp.conviction);
+            opp.score_source = 'ai';
+            
             await NF.DB.put('opportunities', opp);
             app.render();
+        } else {
+            if (container) container.innerHTML = `<div class="retry-block" style="grid-column: 1 / -1;">
+                <span>Failed to run diagnostics.</span>
+                <button onclick="app.runAIDiagnostics('${oppId}')">Retry</button>
+            </div>`;
         }
         
         if (btn) btn.innerHTML = '<svg class="ic" style="margin-right:4px;"><use href="#i-spark"/></svg> Run Diagnostics';
@@ -1033,14 +1208,20 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
     runBoardAnalysis: async (oppId) => {
         const btn = document.getElementById('btn-convene-board');
         const hasGemini = await NF.DB.getSetting('gemini_api_key');
-        if (!hasGemini) return app.showDialog('alert', 'API Key Required', 'Please configure your Gemini API Key to convene the board.');
+        if (!hasGemini) return NF.UI.toast('Please configure your Gemini API Key to convene the board.');
         if (btn) btn.innerHTML = 'Convening Board...';
         const opp = await NF.DB.get('opportunities', oppId);
-        const prompt = `Act as a Virtual Board of Directors for this startup opportunity. Evaluate it from four distinct personas:
-        CEO: Focuses on vision, macro-market fit, and existential risk. Is this a big enough problem?
-        CFO: Focuses on unit economics, monetization, and margin. How do we make money?
-        CTO: Focuses on technical feasibility, building, and architecture. How hard is this to execute?
-        CPO: Focuses on user experience, product mechanics, and customer love. How do we make them love it?
+        
+        const container = document.getElementById('board-analysis-container');
+        if (container) container.innerHTML = '<div class="skeleton"></div>';
+        
+        const prompt = `Act as a Virtual Board of Directors for this startup opportunity. You must debate this sequentially, arguing with each other.
+        
+        Format your response as a sequential debate:
+        1. CEO: Argue FOR the opportunity (vision and macro-market fit).
+        2. CFO: Argue AGAINST the opportunity, explicitly citing the opportunity's numbers, unit economics, or lack thereof. MUST include one "base-rate" sentence for this specific category of startup (e.g., "90% of local delivery startups fail due to CAC.").
+        3. CTO: Evaluate technical feasibility based on the CEO and CFO's arguments.
+        4. CPO: Deliver the final verdict (Build, Kill, or Pivot) based on user experience and the previous arguments.
         
         Opportunity: ${opp.title}
         Next Action: ${opp.next_action}
@@ -1048,28 +1229,84 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         
         Return ONLY a raw JSON object exactly in this format:
         {
-          "ceo": "CEO's brutally honest 2-sentence take.",
-          "cfo": "CFO's brutally honest 2-sentence take.",
-          "cto": "CTO's brutally honest 2-sentence take.",
-          "cpo": "CPO's brutally honest 2-sentence take."
+          "ceo": "CEO's argument for.",
+          "cfo": "CFO's argument against, including a base-rate sentence.",
+          "cto": "CTO's technical feasibility.",
+          "cpo": "CPO's final verdict."
         }`;
         
-        const res = await NF.AI.generateContent(prompt, { taskClass: 'board' });
-        if (res.ok) {
-            try {
-                const cleaned = res.text.replace(/```json/gi, '').replace(/```/g, '').trim();
-                let match = cleaned.match(/\{[\s\S]*\}/);
-                const board = JSON.parse(match ? match[0] : cleaned);
-                opp.board_analysis = board;
-                await NF.DB.put('opportunities', opp);
-                app.render();
-            } catch (e) {
-                app.showDialog('alert', 'Error', 'Failed to parse Board Analysis.');
-            }
+        const board = await app.generateJSON(prompt, { taskClass: 'board' });
+        if (board) {
+            opp.board_analysis = board;
+            await NF.DB.put('opportunities', opp);
+            app.render();
         } else {
-            app.showDialog('alert', 'Error', 'Failed to generate Board Analysis. Check API key.');
+            if (container) container.innerHTML = `<div class="retry-block">
+                <span>Failed to generate Board Analysis.</span>
+                <button onclick="app.runBoardAnalysis('${oppId}')">Retry</button>
+            </div>`;
         }
         if (btn) btn.innerHTML = '<svg class="ic" style="margin-right:4px;"><use href="#i-users"/></svg> Convene Board';
+    },
+    runRedTeam: async (oppId) => {
+        const btn = document.getElementById('btn-red-team');
+        const hasGemini = await NF.DB.getSetting('gemini_api_key');
+        if (!hasGemini) return NF.UI.toast('Please configure your Gemini API Key to run Red Team.');
+        if (btn) btn.innerHTML = 'Red Teaming...';
+        const opp = await NF.DB.get('opportunities', oppId);
+        
+        const container = document.getElementById('red-team-container');
+        if (container) container.innerHTML = '<div class="skeleton"></div>';
+        
+        const prompt = `Act as an adversarial Red Team for this startup opportunity. Give me the absolute strongest, most brutal case AGAINST this working, and the cheapest/fastest test we can run this week to falsify the hypothesis.
+        
+        Opportunity: ${opp.title}
+        Next Action: ${opp.next_action}
+        Observations: ${opp.observations.join(', ')}
+        
+        Return ONLY a raw JSON object exactly in this format:
+        {
+          "strongest_case_against": "The brutal reality...",
+          "cheapest_falsifying_test": "What to do this week to prove it fails."
+        }`;
+        
+        const res = await app.generateJSON(prompt, { taskClass: 'board' });
+        if (res) {
+            opp.red_team = res;
+            await NF.DB.put('opportunities', opp);
+            app.render();
+        } else {
+            if (container) container.innerHTML = `<div class="retry-block"><span>Failed to generate Red Team analysis.</span><button onclick="app.runRedTeam('${oppId}')">Retry</button></div>`;
+        }
+        if (btn) btn.innerHTML = '<svg class="ic" style="margin-right:6px;"><use href="#i-target"/></svg> Red Team';
+    },
+    runPreMortem: async (oppId) => {
+        const btn = document.getElementById('btn-pre-mortem');
+        const hasGemini = await NF.DB.getSetting('gemini_api_key');
+        if (!hasGemini) return NF.UI.toast('Please configure your Gemini API Key to run Pre-Mortem.');
+        if (btn) btn.innerHTML = 'Simulating Failure...';
+        const opp = await NF.DB.get('opportunities', oppId);
+        
+        const container = document.getElementById('pre-mortem-container');
+        if (container) container.innerHTML = '<div class="skeleton"></div>';
+        
+        const prompt = `Assume it's exactly 1 year from now. This opportunity ("${opp.title}") has completely failed. Tell me why. Be specific, brutal, and highly plausible based on the context.
+        Observations: ${opp.observations.join(', ')}
+        
+        Return ONLY a raw JSON object exactly in this format:
+        {
+          "failure_reason": "The story of how and why it failed..."
+        }`;
+        
+        const res = await app.generateJSON(prompt, { taskClass: 'board' });
+        if (res) {
+            opp.pre_mortem = res;
+            await NF.DB.put('opportunities', opp);
+            app.render();
+        } else {
+            if (container) container.innerHTML = `<div class="retry-block"><span>Failed to generate Pre-Mortem.</span><button onclick="app.runPreMortem('${oppId}')">Retry</button></div>`;
+        }
+        if (btn) btn.innerHTML = '<svg class="ic" style="margin-right:6px;"><use href="#i-bulb"/></svg> Pre-Mortem';
     },
     // --- Custom Dialog Logic ---
     _dialogResolver: null,
@@ -1145,7 +1382,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         const reader = new FileReader();
         reader.onload = (ev) => {
             app._pendingTutorFile = `\n\n[FILE ATTACHMENT: ${file.name}]\n${ev.target.result}\n`;
-            app.showDialog('alert', 'File Attached', `${file.name} is ready to be sent with your next message.`);
+            NF.UI.toast(`${file.name} is ready to be sent with your next message.`);
         };
         reader.readAsText(file);
     },
@@ -1168,6 +1405,9 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         
         const chatBox = document.getElementById('tutor-chat');
         chatBox.innerHTML = renderTutorHistory(opp.tutor_history);
+        
+        // Inject Skeleton
+        chatBox.insertAdjacentHTML('beforeend', '<div id="tutor-skeleton" class="tutor-msg ai skeleton" style="min-height:60px; margin-top:16px;"></div>');
         chatBox.scrollTop = chatBox.scrollHeight;
         
         const sysPrompt = `Act as an elite business mentor. STRICT CONSTRAINT: You must ONLY teach non-technical business skills (strategy, sales, operations, marketing, negotiation). Refuse to teach technical hard skills like video editing, coding, or engineering. If asked for technical skills, pivot back to how to SELL or OPERATE a business around those skills. Be highly actionable and concise.`;
@@ -1175,21 +1415,29 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         const prompt = `Opportunity Context: "${opp.title}" (Stage: ${opp.status})\n\nConversation History:\n${historyText}\n\nAI (Respond concisely):`;
         
         const res = await NF.AI.generateContent(prompt, { systemInstruction: sysPrompt, taskClass: 'chat' });
-        if (res.ok) {
+        
+        const skel = document.getElementById('tutor-skeleton');
+        if (res && res.ok) {
             opp.tutor_history.push({ role: 'ai', text: res.text });
             await NF.DB.put('opportunities', opp);
-            const updatedChatBox = document.getElementById('tutor-chat');
-            if (updatedChatBox) {
-                updatedChatBox.innerHTML = renderTutorHistory(opp.tutor_history);
-                updatedChatBox.scrollTop = updatedChatBox.scrollHeight;
+            if (chatBox) {
+                chatBox.innerHTML = renderTutorHistory(opp.tutor_history);
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
         } else {
-            app.showDialog('alert', 'Error', 'Failed to generate response. Check your API key.');
-            opp.tutor_history.pop();
+            opp.tutor_history.pop(); // Remove user msg from DB intent, but it was not saved anyway
+            if (skel) {
+                skel.outerHTML = `<div class="retry-block" style="margin-top:16px;">
+                    <span>Failed to generate response.</span>
+                    <button onclick="app.sendTutorMessage('${oppId}')">Retry</button>
+                </div>`;
+            }
         }
     },
     
-    // --- End Custom Dialog Logic ---    toggleAddBusiness: () => {
+    // --- End Custom Dialog Logic ---
+    
+    toggleAddBusiness: () => {
         const modal = document.getElementById('add-business-backdrop');
         if (modal.style.display === 'flex') {
             modal.style.display = 'none';
@@ -1207,7 +1455,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         const notes = document.getElementById('add-business-notes').value.trim();
         
         if (!name) {
-            alert('Business name is required.');
+            NF.UI.toast('Business name is required.');
             return;
         }
         
@@ -1234,15 +1482,113 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         app.go('Business', id);
     },
 
-    toggleUniversalCapture: () => {
-        const modal = document.getElementById('uc-backdrop');
-        if (modal.style.display === 'flex') {
-            modal.style.display = 'none';
-        } else {
-            modal.style.display = 'flex';
-            document.getElementById('uc-input').focus();
+    _speechRecognition: null,
+    
+    handleCaptureInput: async (e) => {
+        const el = e.target;
+        // Auto-expand up to ~6 lines (approx 140px depending on line-height)
+        el.style.height = '40px';
+        const newHeight = Math.min(el.scrollHeight, 140);
+        el.style.height = newHeight + 'px';
+        
+        // Auto-save draft
+        await NF.DB.putSetting('capture_draft', el.value);
+    },
+    
+    toggleVoiceCapture: () => {
+        if (!('webkitSpeechRecognition' in window)) {
+            NF.UI.toast('Voice dictation not supported in this browser.');
+            return;
+        }
+        
+        const btn = document.getElementById('btn-mic');
+        const input = document.getElementById('uc-input');
+        
+        if (app._speechRecognition) {
+            app._speechRecognition.stop();
+            return;
+        }
+        
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-IN';
+        
+        let startVal = input.value;
+        if (startVal && !startVal.endsWith(' ')) startVal += ' ';
+        
+        recognition.onstart = () => {
+            btn.classList.add('mic-listening');
+            app._speechRecognition = recognition;
+        };
+        
+        recognition.onresult = (event) => {
+            let interim = '';
+            let final = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    final += event.results[i][0].transcript;
+                } else {
+                    interim += event.results[i][0].transcript;
+                }
+            }
+            input.value = startVal + final + interim;
+            input.dispatchEvent(new Event('input')); // trigger auto-expand and save
+            if (final) {
+                startVal = input.value;
+                if (!startVal.endsWith(' ')) startVal += ' ';
+            }
+        };
+        
+        recognition.onerror = (e) => {
+            console.error('Speech recognition error', e);
+            btn.classList.remove('mic-listening');
+            app._speechRecognition = null;
+        };
+        
+        recognition.onend = () => {
+            btn.classList.remove('mic-listening');
+            app._speechRecognition = null;
+        };
+        
+        recognition.start();
+    },
+
+    toggleMoreMenu: () => {
+        const modal = document.getElementById('mobnav-more');
+        if (modal) {
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
         }
     },
+
+    toggleUniversalCapture: async () => {
+        const modal = document.getElementById('uc-backdrop');
+        const input = document.getElementById('uc-input');
+        
+        if (modal.style.display === 'flex') {
+            modal.style.display = 'none';
+            if (app._speechRecognition) app._speechRecognition.stop();
+        } else {
+            modal.style.display = 'flex';
+            
+            // Hide mic if unsupported
+            const btnMic = document.getElementById('btn-mic');
+            if (btnMic && !('webkitSpeechRecognition' in window)) {
+                btnMic.style.display = 'none';
+            }
+            
+            const draft = await NF.DB.getSetting('capture_draft');
+            if (draft) {
+                input.value = draft;
+                input.dispatchEvent(new Event('input'));
+            } else if (!input.value) {
+                input.style.height = '40px';
+            }
+            
+            input.focus();
+        }
+    },
+    
     captureObservation: async () => {
         const text = document.getElementById('uc-input').value.trim();
         if(!text) {
@@ -1251,15 +1597,51 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         }
         
         document.getElementById('uc-input').value = '';
+        await NF.DB.putSetting('capture_draft', '');
         app.toggleUniversalCapture();
         
-        const hasGemini = await NF.DB.getSetting('gemini_api_key');
-        let linkedBizId = null;
-        let finalNote = text;
-        let signalMsg = 'Observation silently logged to Pattern Engine.';
-        let isInstantDeal = false;
+        // Optimistic Save
+        const obsId = await NF.DB.put('observations', {
+            text: text,
+            processed: false,
+            created_at: Date.now()
+        });
         
-        if (hasGemini) {
+        app.render();
+        
+        let undoClicked = false;
+        NF.UI.toast('Captured', {
+            duration: 5000,
+            action: {
+                label: 'Undo',
+                fn: async () => {
+                    undoClicked = true;
+                    await NF.DB.remove('observations', obsId);
+                    app.render();
+                }
+            }
+        });
+        
+        const hasGemini = await NF.DB.getSetting('gemini_api_key');
+        if (!hasGemini) {
+            // Local parsing fallback
+            const stopWords = ['the','is','at','which','and','on','in','a','an','of','to','it','this','that','he','she','they','but','for','with','about','his','her','their'];
+            const kw = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(' ').filter(w => w.length > 3 && !stopWords.includes(w));
+            if (kw.length > 0) {
+                const obs = await NF.DB.getAll('observations');
+                for (let word of kw) {
+                    let matches = obs.filter(o => o.text.toLowerCase().includes(word));
+                    if (matches.length >= 2) {
+                        let suffix = 'th';
+                        if (matches.length === 2) suffix = 'nd';
+                        if (matches.length === 3) suffix = 'rd';
+                        if (!undoClicked) NF.UI.toast(`Captured. ${matches.length}${suffix} note mentioning "${word}" — this is becoming a pattern.`);
+                        break;
+                    }
+                }
+            }
+        } else {
+            // AI Parsing Background Task
             const businesses = await NF.DB.getAll('businesses');
             const bizList = businesses.map(b => `{ id: "${b.id}", name: "${b.name}" }`).join(', ');
             
@@ -1277,26 +1659,32 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
               "business_id": "id or null",
               "deal_title": "title or null",
               "next_action": "action or null"
-            }
-            `;
+            }`;
             
             const aiData = await app.generateJSON(prompt, { taskClass: 'capture' });
-            if (aiData) {
-                if (aiData.cleaned_text) finalNote = aiData.cleaned_text;
+            
+            if (aiData && !undoClicked) {
+                // Verify the observation hasn't been deleted
+                let currentObs = await NF.DB.get('observations', obsId);
+                if (currentObs) {
+                    if (aiData.cleaned_text) currentObs.text = aiData.cleaned_text;
+                    let linkedBizId = null;
                     if (aiData.business_id && aiData.business_id !== 'null') {
                         linkedBizId = aiData.business_id;
+                        currentObs.business_id = linkedBizId;
                     }
                     
                     if (aiData.type === 'deal' && aiData.deal_title) {
-                        isInstantDeal = true;
-                        // Instant Opportunity Generation
+                        currentObs.processed = true;
+                        await NF.DB.put('observations', currentObs);
+                        
                         const newOpp = {
                             title: aiData.deal_title,
                             status: 'Validation',
                             next_action: aiData.next_action || 'Execute immediately',
                             exit_conditions: 'Deal fails to close',
-                            observations: [finalNote],
-                            evidence: [finalNote],
+                            observations: [currentObs.text],
+                            evidence: [currentObs.text],
                             leverage: 8,
                             velocity: 8,
                             conviction: 8,
@@ -1309,62 +1697,28 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
                         if (linkedBizId) newOpp.business_id = linkedBizId;
                         const oppId = await NF.DB.put('opportunities', newOpp);
                         
-                        // Always save observation too
-                        const newObs = {
-                            text: finalNote,
-                            processed: true,
-                            created_at: Date.now()
-                        };
-                        if (linkedBizId) newObs.business_id = linkedBizId;
-                        await NF.DB.put('observations', newObs);
-                        
                         app.render();
                         
-                        const goNow = await app.showDialog('confirm', '⚡ High-Leverage Deal Detected', `AI mapped an immediate opportunity from your note:\n\n"${aiData.deal_title}"\n\nGo to Execution Playbook now?`);
-                        if (goNow) {
-                            app.go('Opportunity', oppId);
-                        }
-                        return;
-                    }
-            }
-        }
-        
-        if (!isInstantDeal) {
-            const newObs = {
-                text: finalNote,
-                processed: false,
-                created_at: Date.now()
-            };
-            if (linkedBizId) newObs.business_id = linkedBizId;
-            
-            await NF.DB.put('observations', newObs);
-            
-            if (linkedBizId) {
-                const biz = await NF.DB.get('businesses', linkedBizId);
-                if (biz) signalMsg = `Captured and auto-linked to dossier: ${biz.name}.`;
-            } else if (!hasGemini) {
-                // Dynamic "This Mattered" Signal
-                const stopWords = ['the','is','at','which','and','on','in','a','an','of','to','it','this','that','he','she','they','but','for','with','about','his','her','their'];
-                const kw = finalNote.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(' ').filter(w => w.length > 3 && !stopWords.includes(w));
-                
-                if (kw.length > 0) {
-                    const obs = await NF.DB.getAll('observations');
-                    for (let word of kw) {
-                        let matches = obs.filter(o => o.text.toLowerCase().includes(word));
-                        if (matches.length >= 2) {
-                            let suffix = 'th';
-                            if (matches.length === 2) suffix = 'nd';
-                            if (matches.length === 3) suffix = 'rd';
-                            signalMsg = `Captured. ${matches.length}${suffix} note mentioning "${word}" — this is becoming a pattern.`;
-                            break;
+                        // We replaced alert/confirm entirely, wait, if it's an instant deal, we show a toast with an action to open the playbook!
+                        NF.UI.toast(`⚡ High-Leverage Deal Detected: ${aiData.deal_title}`, {
+                            duration: 10000,
+                            action: {
+                                label: 'Open Playbook',
+                                fn: () => app.go('Opportunity', oppId)
+                            }
+                        });
+                    } else {
+                        await NF.DB.put('observations', currentObs);
+                        if (linkedBizId) {
+                            const biz = await NF.DB.get('businesses', linkedBizId);
+                            if (biz) NF.UI.toast(`Captured and auto-linked to dossier: ${biz.name}.`);
                         }
                     }
                 }
             }
-            
-            app.showDialog('alert', 'Saved', signalMsg);
-            app.render();
-            
+        }
+        
+        if (!undoClicked) {
             if (app._patternEngineTimer) clearTimeout(app._patternEngineTimer);
             app._patternEngineTimer = setTimeout(() => {
                 app.runPatternEngine().then(async () => {
@@ -1400,55 +1754,130 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
                 app.render();
             }
         } else {
-            app.showDialog('alert', 'Max Stage Reached', `This opportunity has reached maximum enterprise value (${LIFECYCLE[LIFECYCLE.length - 1]}).`);
+            NF.UI.toast(`This opportunity has reached maximum enterprise value (${LIFECYCLE[LIFECYCLE.length - 1]}).`);
         }
     },
+    
+    _swipeState: { startX: 0, currentX: 0, swiping: false, element: null },
+    
+    handleSwipeStart: (e) => {
+        const touch = e.touches[0];
+        app._swipeState.startX = touch.clientX;
+        app._swipeState.currentX = touch.clientX;
+        app._swipeState.swiping = true;
+        app._swipeState.element = e.currentTarget;
+        app._swipeState.element.style.transition = 'none';
+    },
+    
+    handleSwipeMove: (e) => {
+        if (!app._swipeState.swiping || !app._swipeState.element) return;
+        const touch = e.touches[0];
+        app._swipeState.currentX = touch.clientX;
+        const deltaX = app._swipeState.currentX - app._swipeState.startX;
+        
+        if (Math.abs(deltaX) > 20) {
+            // Prevent vertical scrolling while swiping
+            if(e.cancelable) e.preventDefault();
+        }
+        
+        app._swipeState.element.style.transform = `translateX(${deltaX}px)`;
+        
+        const parent = app._swipeState.element.parentElement;
+        const bgAdvance = parent.querySelector('.swipe-bg-advance');
+        const bgArchive = parent.querySelector('.swipe-bg-archive');
+        if (deltaX > 0) {
+            if(bgAdvance) bgAdvance.style.zIndex = 1;
+            if(bgArchive) bgArchive.style.zIndex = 0;
+        } else {
+            if(bgArchive) bgArchive.style.zIndex = 1;
+            if(bgAdvance) bgAdvance.style.zIndex = 0;
+        }
+    },
+    
+    handleSwipeEnd: (e, id) => {
+        if (!app._swipeState.swiping || !app._swipeState.element) return;
+        app._swipeState.swiping = false;
+        
+        const deltaX = app._swipeState.currentX - app._swipeState.startX;
+        const el = app._swipeState.element;
+        el.style.transition = 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)';
+        
+        const threshold = window.innerWidth * 0.3; // 30% of screen width
+        
+        if (deltaX > threshold) {
+            el.style.transform = `translateX(100%)`;
+            setTimeout(() => app.advanceStageSwipe(id), 200);
+        } else if (deltaX < -threshold) {
+            el.style.transform = `translateX(-100%)`;
+            setTimeout(() => app.archiveOpportunitySwipe(id), 200);
+        } else {
+            el.style.transform = `translateX(0)`;
+        }
+        app._swipeState.element = null;
+    },
+    
+    advanceStageSwipe: async (id) => {
+        const opp = await NF.DB.get('opportunities', id);
+        const idx = LIFECYCLE.indexOf(opp.status);
+        if (idx > -1 && idx < LIFECYCLE.length - 1) {
+            const oldStatus = opp.status;
+            opp.status = LIFECYCLE[idx+1];
+            await NF.DB.put('opportunities', opp);
+            app.render();
+            
+            NF.UI.toast(`Advanced to ${opp.status}`, {
+                duration: 5000,
+                action: {
+                    label: 'Undo',
+                    fn: async () => {
+                        opp.status = oldStatus;
+                        await NF.DB.put('opportunities', opp);
+                        app.render();
+                    }
+                }
+            });
+        } else {
+            app.render();
+        }
+    },
+    
+    archiveOpportunitySwipe: async (id) => {
+        const opp = await NF.DB.get('opportunities', id);
+        if (opp.status === 'Archived') {
+            app.render();
+            return;
+        }
+        
+        const oldStatus = opp.status;
+        opp.status = 'Archived';
+        opp.archive_reason = 'Archived via swipe gesture';
+        await NF.DB.put('opportunities', opp);
+        app.render();
+        
+        NF.UI.toast('Opportunity Archived', {
+            duration: 5000,
+            action: {
+                label: 'Undo',
+                fn: async () => {
+                    opp.status = oldStatus;
+                    opp.archive_reason = undefined;
+                    await NF.DB.put('opportunities', opp);
+                    app.render();
+                }
+            }
+        });
+        
+        // Immediately pop the post-mortem
+        app.showPostMortemDialog(id);
+    },
+
     archiveOpportunity: async (id) => {
         const opp = await NF.DB.get('opportunities', id);
-        const reason = await app.showDialog('prompt', 'Graveyard: Why did this fail? (Rant freely)');
-        if (!reason) return;
-        
-        let predicted = 'Unknown';
-        let lesson = 'Unknown';
-        
-        const hasGemini = await NF.DB.getSetting('gemini_api_key');
-        if (hasGemini) {
-            // Briefly show a processing dialog or just rely on the slight delay
-            // We will just wait. The UI will pause.
-            const prompt = `Act as a brutal startup coach. The founder just killed an opportunity for this reason: "${reason}".
-            Extract the core failure mode and lesson.
-            Format as JSON: {"predicted_vs_actual": "Short analysis of what they thought would happen vs reality", "lesson": "The core mental model to take away"}`;
-            
-            const aiData = await app.generateJSON(prompt, { taskClass: 'capture' });
-            if (aiData) {
-                predicted = aiData.predicted_vs_actual || 'Unknown';
-                lesson = aiData.lesson || 'Unknown';
-            }
-        } 
-        
-        if (!hasGemini || lesson === 'Unknown') {
-            predicted = await app.showDialog('prompt', 'Graveyard: What did you predict vs what actually happened?');
-            lesson = await app.showDialog('prompt', 'Graveyard: What is the core lesson to extract?');
-        }
-        
         opp.status = 'Archived';
-        opp.archive_reason = reason;
-        opp.predicted_vs_actual = predicted || 'Unknown';
-        opp.lessons_learned = lesson || 'Unknown';
-        
         await NF.DB.put('opportunities', opp);
-        
-        // Update founder intel with a lesson silently
-        let intel = await NF.DB.getSetting('founder_intel');
-        if (!intel) intel = { recent_lessons: [], prediction_accuracy: 50 };
-        if (lesson && lesson !== 'Unknown') {
-            if (!intel.recent_lessons) intel.recent_lessons = [];
-            intel.recent_lessons.unshift(lesson);
-            if(intel.recent_lessons.length > 10) intel.recent_lessons.pop();
-            await NF.DB.setSetting('founder_intel', intel);
-        }
-        
         app.render();
+        
+        app.showPostMortemDialog(id);
     },
     editField: async (id, field, promptText) => {
         const opp = await NF.DB.get('opportunities', id);
@@ -1460,14 +1889,183 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             await NF.DB.put('opportunities', opp);
             app.render();
         }
-    },    spawnHypothesis: async (patternId) => {
+    },
+    
+    draftOpportunityExit: async (title) => {
+        const hasGemini = await NF.DB.getSetting('gemini_api_key');
+        if (!hasGemini) {
+            return {
+                exit_conditions: '1. No validation in 14 days.\n2. Customer refuses to pay.',
+                exit_deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                bias_flag: null
+            };
+        }
+        
+        const intel = await NF.DB.getSetting('founder_intel') || {};
+        const biases = intel.biases && intel.biases.length > 0 ? intel.biases.join(', ') : '';
+        const biasPromptPart = biases ? `\nThe founder has these known biases: [${biases}]. If this opportunity seems heavily influenced by these biases, provide a "bias_flag" string pointing it out. Otherwise, return null for bias_flag.` : '';
+        
+        NF.UI.toast('Drafting exit conditions via AI...');
+        const prompt = `Draft exit conditions for this opportunity: "${title}".
+We need ruthless kill discipline. Provide EXACTLY 2 highly-measurable exit conditions that, if met, mean we abandon the idea immediately. Also provide a resolve-by date (ISO format YYYY-MM-DD, typically 14-30 days from today).${biasPromptPart}
+Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadline": "YYYY-MM-DD", "bias_flag": "Warning string or null"}`;
+        
+        const res = await app.generateJSON(prompt, { systemInstruction: "You are a ruthless strategist. Output raw JSON only.", taskClass: 'brief' });
+        if (res && res.exit_conditions && res.exit_deadline) {
+            return res;
+        } else {
+            return {
+                exit_conditions: '1. No validation in 14 days.\n2. Customer refuses to pay.',
+                exit_deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                bias_flag: null
+            };
+        }
+    },
+    
+    resolvePrediction: async (oppId, predId, isRight) => {
+        const opp = await NF.DB.get('opportunities', oppId);
+        if (!opp) return;
+        
+        const pred = (opp.predictions || []).find(p => p.id === predId);
+        if (!pred) return;
+        
+        pred.status = isRight ? 'right' : 'wrong';
+        await NF.DB.put('opportunities', opp);
+        
+        let intel = await NF.DB.getSetting('founder_intel') || {};
+        intel.prediction_stats = intel.prediction_stats || { right: 0, total: 0, accuracy: 0 };
+        intel.prediction_stats.total += 1;
+        if (isRight) intel.prediction_stats.right += 1;
+        intel.prediction_stats.accuracy = Math.round((intel.prediction_stats.right / intel.prediction_stats.total) * 100);
+        
+        if (!isRight) {
+            const lesson = await app.showDialog('prompt', 'Post-Mortem: Wrong Prediction', `Your prediction "${pred.statement}" was wrong. What is the fundamental lesson here?`);
+            if (lesson) {
+                intel.recent_lessons = intel.recent_lessons || [];
+                intel.recent_lessons.unshift(lesson);
+                if (intel.recent_lessons.length > 5) intel.recent_lessons.pop();
+            }
+        }
+        
+        await NF.DB.putSetting('founder_intel', intel);
+        app.render();
+    },
+    
+    logPrediction: (oppId) => {
+        return new Promise(async (resolve) => {
+            const opp = await NF.DB.get('opportunities', oppId);
+            if (!opp) return resolve(false);
+            
+            const div = document.createElement('div');
+            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
+            div.innerHTML = `
+                <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
+                    <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'JetBrains Mono',monospace;">Log a Prediction</div>
+                    <div style="padding:24px;">
+                        <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft);">What do you predict will happen?</label>
+                        <input id="pred-statement" type="text" class="input" placeholder="e.g. 5 customers will buy" style="margin-bottom:16px;"/>
+                        
+                        <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft);">Confidence (50% - 99%)</label>
+                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                            <input id="pred-conf" type="range" min="50" max="99" value="75" style="flex:1;"/>
+                            <span id="pred-conf-val" style="font-weight:600; font-family:monospace;">75%</span>
+                        </div>
+                        
+                        <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft);">Resolve-By Date</label>
+                        <input id="pred-date" type="date" class="input" value="${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}" style="margin-bottom:24px;"/>
+                        
+                        <div style="display:flex; justify-content:flex-end; gap:12px;">
+                            <button id="pred-cancel" class="btn btn--sm" style="border:none; color:var(--ink-soft);">Cancel</button>
+                            <button id="pred-save" class="btn btn--primary btn--sm">Commit Prediction</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(div);
+            
+            document.getElementById('pred-conf').oninput = (e) => {
+                document.getElementById('pred-conf-val').textContent = e.target.value + '%';
+            };
+            
+            document.getElementById('pred-cancel').onclick = () => {
+                document.body.removeChild(div);
+                resolve(false);
+            };
+            document.getElementById('pred-save').onclick = async () => {
+                const statement = document.getElementById('pred-statement').value.trim();
+                const confidence = parseInt(document.getElementById('pred-conf').value);
+                const resolve_date = document.getElementById('pred-date').value;
+                if (!statement || !resolve_date) {
+                    alert('Please fill out all fields.');
+                    return;
+                }
+                
+                opp.predictions = opp.predictions || [];
+                opp.predictions.push({
+                    id: 'pred_' + Date.now(),
+                    statement: statement,
+                    confidence: confidence,
+                    resolve_date: resolve_date,
+                    status: 'pending'
+                });
+                
+                await NF.DB.put('opportunities', opp);
+                document.body.removeChild(div);
+                app.render();
+                resolve(true);
+            };
+        });
+    },
+
+    showSpawnReviewDialog: (oppObj) => {
+        return new Promise((resolve) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
+            div.innerHTML = `
+                <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
+                    <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'JetBrains Mono',monospace;">Spawn Opportunity</div>
+                    <div style="padding:24px;">
+                        <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft);">Title</label>
+                        <input id="spawn-title" type="text" class="input" value="${app.escapeHtml(oppObj.title)}" style="margin-bottom:16px;"/>
+                        
+                        <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft);">AI Drafted Exit Conditions</label>
+                        <textarea id="spawn-exit" class="input" style="min-height:100px; margin-bottom:16px;">${app.escapeHtml(oppObj.exit_conditions)}</textarea>
+                        
+                        <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--ink-soft);">Resolve-By Date (Kill Date)</label>
+                        <input id="spawn-date" type="date" class="input" value="${app.escapeHtml(oppObj.exit_deadline)}" style="margin-bottom:24px;"/>
+                        
+                        <div style="display:flex; justify-content:flex-end; gap:12px;">
+                            <button id="spawn-cancel" class="btn btn--sm" style="border:none; color:var(--ink-soft);">Cancel</button>
+                            <button id="spawn-save" class="btn btn--primary btn--sm">Commit & Spawn</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(div);
+            
+            document.getElementById('spawn-cancel').onclick = () => {
+                document.body.removeChild(div);
+                resolve(false);
+            };
+            document.getElementById('spawn-save').onclick = () => {
+                oppObj.title = document.getElementById('spawn-title').value.trim();
+                oppObj.exit_conditions = document.getElementById('spawn-exit').value.trim();
+                oppObj.exit_deadline = document.getElementById('spawn-date').value;
+                document.body.removeChild(div);
+                resolve(true);
+            };
+        });
+    },
+
+    spawnHypothesis: async (patternId) => {
         const pattern = await NF.DB.get('patterns', patternId);
         const title = await app.showDialog('prompt', 'Spawn Hypothesis', 'What opportunity could solve this pattern?');
         if (!title) return;
         
-        const oppId = 'opp_' + Date.now();
-        await NF.DB.put('opportunities', {
-            id: oppId,
+        const draft = await app.draftOpportunityExit(title);
+        
+        const oppObj = {
+            id: 'opp_' + Date.now(),
             title: title,
             leverage: 5,
             velocity: 5,
@@ -1475,25 +2073,33 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             calculated_score: 50,
             status: 'Validation',
             next_action: 'Define specific target audience',
-            exit_conditions: 'Kill if no validation in 14 days',
+            exit_conditions: draft.exit_conditions,
+            exit_deadline: draft.exit_deadline,
             evidence: [],
-            observations: pattern.observation_ids || []
-        });
+            observations: pattern.observation_ids || [],
+            predictions: []
+        };
         
-        app.go('Pipeline');
-        
-        const hasGemini = await NF.DB.getSetting('gemini_api_key');
-        if (hasGemini) {
-            app.runAIDiagnostics(oppId).then(() => app.render());
+        const confirmed = await app.showSpawnReviewDialog(oppObj);
+        if (confirmed) {
+            await NF.DB.put('opportunities', oppObj);
+            
+            const hasGemini = await NF.DB.getSetting('gemini_api_key');
+            if (hasGemini) {
+                app.runAIDiagnostics(oppObj.id).then(() => app.render());
+            }
+            
+            app.go('Pipeline');
         }
     },
     spawnBusinessOpportunity: async (bizId) => {
         const title = await app.showDialog('prompt', 'Spawn Opportunity', 'What opportunity are you pursuing here?');
         if (!title) return;
         
-        const oppId = 'opp_' + Date.now();
-        await NF.DB.put('opportunities', {
-            id: oppId,
+        const draft = await app.draftOpportunityExit(title);
+        
+        const oppObj = {
+            id: 'opp_' + Date.now(),
             title: title,
             leverage: 5,
             velocity: 5,
@@ -1502,17 +2108,25 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             score_source: 'fallback',
             status: LIFECYCLE[0],
             next_action: 'Define specific target audience',
-            exit_conditions: 'Kill if no validation in 14 days',
+            exit_conditions: draft.exit_conditions,
+            exit_deadline: draft.exit_deadline,
+            bias_flag: draft.bias_flag || null,
             evidence: [],
             observations: [],
-            business_id: bizId
-        });
+            business_id: bizId,
+            predictions: []
+        };
         
-        app.go('Opportunity', oppId);
-        
-        const hasGemini = await NF.DB.getSetting('gemini_api_key');
-        if (hasGemini) {
-            app.runAIDiagnostics(oppId).then(() => app.render());
+        const confirmed = await app.showSpawnReviewDialog(oppObj);
+        if (confirmed) {
+            await NF.DB.put('opportunities', oppObj);
+            
+            const hasGemini = await NF.DB.getSetting('gemini_api_key');
+            if (hasGemini) {
+                app.runAIDiagnostics(oppObj.id).then(() => app.render());
+            }
+            
+            app.go('Opportunity', oppObj.id);
         }
     },
     // --- INTERACTIVE SIMULATOR ---
@@ -1699,7 +2313,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         const confirm = await app.showDialog('confirm', 'Wipe Database', 'Are you ABSOLUTELY sure? This will delete all observations, opportunities, and patterns. Your API key will be saved.');
         if (confirm) {
             await NF.DB.nukeDatabase();
-            app.showDialog('alert', 'Database Wiped', 'All field data has been deleted.');
+            NF.UI.toast('All field data has been deleted.');
             app.go('Morning');
         }
     }
@@ -1708,7 +2322,29 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
 window.addEventListener('DOMContentLoaded', async () => {
     try {
         await NF.DB.init();
+        
+        // Handle share_target and PWA shortcuts
+        const urlParams = new URLSearchParams(window.location.search);
+        let sharedText = urlParams.get('text') || '';
+        let sharedTitle = urlParams.get('title') || '';
+        let sharedUrl = urlParams.get('url') || '';
+        let isCaptureShortcut = urlParams.get('capture') === '1';
+        
+        let combinedShare = [sharedTitle, sharedText, sharedUrl].filter(Boolean).join('\n\n');
+        
+        if (combinedShare) {
+            // Overwrite draft if we received a share
+            await NF.DB.putSetting('capture_draft', combinedShare);
+        }
+        
         app.render();
+        
+        if (combinedShare || isCaptureShortcut) {
+            // Clean URL so refresh doesn't duplicate
+            window.history.replaceState({}, document.title, window.location.pathname);
+            app.toggleUniversalCapture();
+        }
+        
         // Silently run engine on boot without blocking UI
         if ('requestIdleCallback' in window) {
             requestIdleCallback(() => app.runPatternEngine());
@@ -1743,3 +2379,4 @@ window.addEventListener('keydown', (e) => {
         }
     }
 });
+

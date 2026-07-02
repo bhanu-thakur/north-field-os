@@ -1,0 +1,99 @@
+
+/* MISSION 8 ADDITIONS */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 9999;
+    pointer-events: none;
+    align-items: center;
+}
+
+.toast {
+    background: #111;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto;
+    animation: toast-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    cursor: default;
+    user-select: none;
+}
+
+.toast.hiding {
+    animation: toast-fade-out 0.2s ease forwards;
+}
+
+.toast-action {
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+}
+.toast-action:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+@keyframes toast-slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toast-fade-out {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, var(--card) 25%, var(--line) 50%, var(--card) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    min-height: 120px;
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.retry-block {
+    background: #fff0f0;
+    border: 1px solid #ffc9c9;
+    color: #c92a2a;
+    padding: 16px 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+.retry-block button {
+    background: #c92a2a;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.retry-block button:hover {
+    background: #a61e1e;
+}

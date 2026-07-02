@@ -109,7 +109,7 @@
 - [ ] Log 3 related notes in one session without reload → a pattern appears within ~10s of the last note.
 - [ ] Feed a mocked response with prose around JSON → parses fine. Feed pure prose → retry fires → toast appears; console shows both attempts.
 
-### ☐ MISSION 8 — Toasts, Loading, Undo (items #105, #113, #139, #141, #136)
+### ☑ MISSION 8 — Toasts, Loading, Undo (items #105, #113, #139, #141, #136)
 **Goal:** replace every `alert()` with a single non-blocking feedback system; every AI wait is visible.
 **Files:** `app.js`, `css/design-system.css` (additive tokens only), `index.html` (toast root).
 **Steps:**
@@ -121,7 +121,7 @@
 - [ ] Undo within 5s removes the observation from DB (verify count).
 - [ ] Kill the network mid-board-analysis: skeleton → inline retry block, no dead UI.
 
-### ☐ MISSION 9 — Voice + Share + Shortcut Capture (items #19, #22, #29, #114, #117, #120)
+### ☑ MISSION 9 — Voice + Share + Shortcut Capture (items #19, #22, #29, #114, #117, #120)
 **Goal:** the 30-Second Rule at full strength.
 **Files:** `app.js` (capture modal), `manifest.webmanifest`, `sw.js` (share handling), `css` additive.
 **Steps:**
@@ -133,13 +133,13 @@
 - [ ] Close the modal mid-sentence, reopen → text restored.
 - [ ] Share a WhatsApp message to the installed PWA → capture modal opens pre-filled.
 
-### ☐ MISSION 10 — Mobile Ergonomics (items #110, #128, #152, #153, #154, #155)
+### ☑ MISSION 10 — Mobile Ergonomics (items #110, #128, #152, #153, #154, #155)
 **Goal:** thumb-first field usage.
 **Files:** `app.js` (nav, list renders), `css` additive, `index.html`.
 **Steps:** Capture FAB bottom-right on all mobile views; convert capture + filters to draggable bottom sheets on <768px; add `env(safe-area-inset-bottom)` padding to nav/FAB; audit all touch targets to ≥48px (pad, don't resize icons); add More item to bottom nav exposing Discovery + Settings; implement swipe-right-to-advance / swipe-left-to-archive on opportunity rows with colored reveal + undo toast; fix "V3 Engine" labels to current version.
 **Acceptance tests:** [ ] Everything on the Desk reachable one-handed on a 6.1" viewport · [ ] swipe-archive then Undo restores · [ ] no control hidden behind the gesture bar.
 
-### ☐ MISSION 11 — Judgment Layer I: Predictions & Kill Discipline (items #48, #54, #55, #57)
+### ☑ MISSION 11 — Judgment Layer I: Predictions & Kill Discipline (items #48, #54, #55, #57)
 **Goal:** calibration becomes real; ruthlessness becomes software.
 **Files:** `app.js`, `modules/db.js` (additive fields only: `opp.predictions[]`, `opp.exit_deadline`).
 **Steps:**

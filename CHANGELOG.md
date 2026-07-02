@@ -1,5 +1,24 @@
 # NORTH OS — CHANGELOG
 
+## [2026-07-02] - Mission 11: Judgment Layer I (Predictions & Kill Discipline)
+- Predictions Engine: Added the ability to log predictions with a confidence slider on opportunities. Unresolved predictions surface in the Morning Briefing based on their resolve-by dates.
+- Calibration & Lessons: Resolving a prediction correctly/incorrectly now updates the founder's overall Brier-style accuracy score. Incorrect predictions immediately force a post-mortem lesson extraction.
+- Ruthless Kill Dates: AI now drafts 2 measurable exit conditions and a kill date upon opportunity spawn (with an inline edit dialog). Missed kill dates trigger prominent red warnings in the UI.
+- Unified Post-Mortem: Archiving an opportunity now instantly pops up a 3-field post-mortem dialog (Cause, Predicted vs Actual, Key Lesson) replacing the old chained alert prompts.
+## [2026-07-02] - Mission 10: Mobile Ergonomics
+- Swipe Gestures: Implemented native, fluid `translateX` touch gestures for Opportunity rows. Swiping right advances the stage (green reveal), swiping left archives it to the graveyard (red reveal), with an immediate 5-second Undo toast bypassing blocking prompts.
+- Bottom Sheet Layouts: Re-anchored Universal Capture and mobile menus as iOS-style bottom sheets with drag indicator pills.
+- Floating Action Button (FAB): Injected a sticky Capture FAB on mobile viewports `env(safe-area-inset-bottom)` aware, ensuring capture is always reachable by thumb.
+- Touch Targets & V4 Fixes: Expanded all actionable touch targets to minimum 48px footprint. Fixed hardcoded "V5" Engine labels back to the current "V4 Engine".
+## [2026-07-02] - Mission 9: Voice + Share + Shortcut Capture
+- Voice Dictation: Implemented `webkitSpeechRecognition` to allow hands-free logging with live interim result streaming and dynamic UI pulsing.
+- Auto-Expanding Drafts: Universal Capture now dynamically expands up to 6 lines and continuously auto-saves drafts to IndexedDB to survive accidental closures.
+- PWA System Integrations: Registered a `share_target` to receive shared text from OS apps, and added an app icon Shortcut to jump directly into the capture modal (`/?capture=1`).
+## [2026-07-02] - Mission 8: Toasts, Loading, Undo
+- Custom Non-Blocking Feedback: Developed `NF.UI.toast` (bottom-anchored, stacks max 2) as a global replacement for all 22 native `alert()` calls. The interface is now completely non-blocking.
+- Optimistic Save & Undo: Universal Capture now saves immediately to IndexedDB and surfaces a "Captured" toast with a 5s "Undo" action. The AI processing continues seamlessly in the background.
+- Skeleton States & Resilient Retries: All AI-populated surfaces (Prep Brief, Board Analysis, Diagnostics, and JIT Tutor) now display a shimmering skeleton card while awaiting the model. If the network drops or generation fails, an inline 'Retry' block appears in place.
+
 ## [2026-07-02] - Mission 7: Live Pattern Loop + Resilient JSON
 - Bulletproof AI Parsing: Added `NF.AI.extractJSON` and `app.generateJSON` wrapper to handle all AI generation calls. It gracefully handles markdown fences, finds balanced braces, and returns parsed JSON.
 - Retry Loop & Toasts: On JSON parse failure, the wrapper automatically retries once with explicit instructions to output valid JSON. On a second failure, a non-blocking toast informs the user.

@@ -25,11 +25,15 @@
         <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></symbol>
         <symbol id="i-cross" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
         <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+        <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></symbol>
     </svg>
 
     <div class="app" id="app-root">
         <!-- Layout injected by app.js -->
     </div>
+    
+    <!-- Toast Root -->
+    <div id="toast-root" class="toast-container"></div>
 
     <!-- Custom Dialog Overlay -->
     <div id="dialog-backdrop" style="display:none; position:fixed; inset:0; background:rgba(20,40,30,0.5); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center;">
@@ -55,14 +59,18 @@
     </div>
 
     <!-- Global Universal Capture Modal -->
-    <div id="uc-backdrop" onclick="if(event.target===this) app.toggleUniversalCapture()" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); z-index:9999; justify-content:center; align-items:flex-start; padding-top:15vh;">
-        <div style="width:100%; max-width:600px; background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 12px 48px rgba(0,0,0,0.08); overflow:hidden;">
+    <div id="uc-backdrop" onclick="if(event.target===this) app.toggleUniversalCapture()" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); z-index:9999; justify-content:center; align-items:flex-end;">
+        <div style="width:100%; max-width:600px; background:var(--card); border:1px solid var(--line); border-radius:16px 16px 0 0; box-shadow:0 -12px 48px rgba(0,0,0,0.1); overflow:hidden; padding-bottom:env(safe-area-inset-bottom);">
+            <div style="display:flex; justify-content:center; padding-top:12px; margin-bottom:-4px;"><div style="width:40px; height:4px; border-radius:2px; background:var(--line);"></div></div>
             <div style="padding:16px 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint);">Universal Capture</span>
                 <span onclick="app.toggleUniversalCapture()" style="font-size:0.75rem; color:var(--ink-soft); cursor:pointer; font-weight:600;">Close ✕</span>
             </div>
             <div style="padding:24px;">
-                <textarea id="uc-input" placeholder="What did you see? (e.g. 'Met Arthur, he hates his current supplier...')" style="width:100%; min-height:120px; font-size:1.2rem; border:none; padding:0; background:transparent; resize:vertical; outline:none; box-shadow:none; color:var(--ink); line-height:1.5; font-family:'Inter',sans-serif;"></textarea>
+                <div style="position:relative;">
+                    <textarea id="uc-input" placeholder="What did you see? (e.g. 'Met Arthur, he hates his current supplier...')" oninput="app.handleCaptureInput(event)" style="width:100%; min-height:40px; font-size:1.2rem; border:none; padding:0; background:transparent; resize:none; outline:none; box-shadow:none; color:var(--ink); line-height:1.5; font-family:'Inter',sans-serif; overflow:hidden;"></textarea>
+                    <button id="btn-mic" onclick="app.toggleVoiceCapture()" class="btn btn--sm" style="position:absolute; right:0; bottom:0; background:transparent; border:none; color:var(--ink-soft); padding:8px; border-radius:50%; transition:all 0.2s;"><svg class="ic"><use href="#i-mic"/></svg></button>
+                </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:24px;">
                     <span style="font-size:0.8rem; color:var(--ink-faint); display:flex; align-items:center; gap:6px;"><svg class="ic" style="color:var(--good);"><use href="#i-spark"/></svg> Pattern Engine Active</span>
                     <button class="btn btn--primary" onclick="app.captureObservation()">Log Observation</button>
