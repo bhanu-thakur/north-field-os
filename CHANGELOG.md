@@ -1,5 +1,11 @@
 # NORTH OS — CHANGELOG
 
+## [2026-07-02] - Mission 5: Dead Feature Resurrection
+- Unlocked the Board: Added the "Convene Board" button to the Opportunity view, appropriately gated behind the presence of an API key.
+- Upgraded the Business Creation Flow: The "Add Entity" modal now captures full context (Name, Industry, Contact Person, Phone, and Notes).
+- Solidified the Relational Data Model: Opportunities now reliably carry a `business_id` when spawned manually from a Business Dossier or when auto-linked by the Pattern Engine during capture.
+- Refined the Dossier UI: Replaced the static slice with a precise `business_id` filter and added a clean empty state for unlinked entities.
+
 ## [2026-07-02] - Mission 4: Service Worker Completeness
 - Upgraded the Service Worker (`sw.js`) to cache newly introduced data and module files (`boardroom.js`, `journal.js`, `bibles.js`, `pipeline.js`).
 - Implemented a "Network First, fallback to Cache" strategy for JavaScript application code (`app.js` and `modules/*.js`) to ensure updates ship immediately on reload without requiring a manual cache-version bump.

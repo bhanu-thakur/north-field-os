@@ -458,7 +458,10 @@ const renderOpportunity = async () => {
                     </div>
                     <div style="display:flex; gap:12px; align-items:center;">
                         <div class="pill pill--brand" style="font-size:0.9rem;">Score: ${opp.calculated_score}</div>
-                        ${(!isArchived && hasAI) ? `<button class="btn btn--sm" id="btn-convene-board" onclick="app.runBoardAnalysis('${opp.id}')" style="background:#111; color:#fff; border:1px solid #333;"><svg class="ic" style="margin-right:6px;"><use href="#i-users"/></svg> Convene Board</button>` : ''}
+                        ${!isArchived ? (hasAI 
+                            ? `<button class="btn btn--sm" id="btn-convene-board" onclick="app.runBoardAnalysis('${opp.id}')" style="background:#111; color:#fff; border:1px solid #333;"><svg class="ic" style="margin-right:6px;"><use href="#i-users"/></svg> Convene Board</button>`
+                            : `<button class="btn btn--sm" id="btn-convene-board" style="background:#333; color:#888; border:1px solid #444; cursor:not-allowed;" title="API Key Required"><svg class="ic" style="margin-right:6px;"><use href="#i-users"/></svg> Convene Board</button>`
+                        ) : ''}
                         ${!isArchived ? `<button class="btn btn--primary btn--sm" onclick="app.toggleTutor()"><svg class="ic" style="margin-right:6px;"><use href="#i-spark"/></svg> AI Tutor</button>` : ''}
                         ${!isArchived ? `<button class="btn btn--sm" onclick="app.advanceStage('${opp.id}')">Advance Stage <svg class="ic"><use href="#i-arrow"/></svg></button>` : ''}
                     </div>
@@ -588,7 +591,7 @@ const renderBusinessDetail = async () => {
     const biz = await NF.DB.get('businesses', NF.State.activeId);
     let opps = await NF.DB.getAll('opportunities');
     // Filter opps linked to this business
-    let linkedOpps = opps.filter(o => o.linked_business_id === biz.id);
+    let linkedOpps = opps.filter(o => o.business_id === biz.id);
 
     
     let html = `
@@ -623,13 +626,16 @@ const renderBusinessDetail = async () => {
                         </div>
                         
                         <div class="card" style="margin:0;">
-                            <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin-bottom:16px;">3. What opportunities exist?</h2>
-                            ${linkedOpps.map(o => `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                                <h2 style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--primary); margin:0;">3. What opportunities exist?</h2>
+                                <button class="btn btn--sm" onclick="app.spawnBusinessOpportunity('${biz.id}')">Spawn</button>
+                            </div>
+                            ${linkedOpps.length > 0 ? linkedOpps.map(o => `
                                 <div style="padding:12px; border:1px solid var(--line); border-radius:8px; margin-bottom:8px; cursor:pointer;" onclick="app.go('Opportunity', '${o.id}')">
                                     <h3 style="font-size:0.95rem; margin-bottom:4px; color:var(--ink);">${o.title}</h3>
                                     <div class="pill pill--brand" style="font-size:0.7rem;">${o.status}</div>
                                 </div>
-                            `).join('')}
+                            `).join('') : '<p style="color:var(--ink-faint); font-size:0.9rem;">No opportunities linked yet.</p>'}
                         </div>
                     </div>
                     
@@ -1182,7 +1188,10 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
     
     createBusiness: async () => {
         const name = document.getElementById('add-business-name').value.trim();
+        const industry = document.getElementById('add-business-industry').value.trim();
         const dm = document.getElementById('add-business-dm').value.trim();
+        const phone = document.getElementById('add-business-phone').value.trim();
+        const notes = document.getElementById('add-business-notes').value.trim();
         
         if (!name) {
             alert('Business name is required.');
@@ -1193,8 +1202,11 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         await NF.DB.put('businesses', {
             id,
             name,
+            industry: industry || 'Unknown',
             decision_maker: dm || 'Unknown',
-            key_contacts: [],
+            phone: phone || '',
+            notes: notes || '',
+            key_contacts: dm ? [dm] : [],
             trust_level: 'Cold',
             communication_style: 'Direct',
             known_problems: [],
@@ -1288,6 +1300,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
                             calculated_score: 80,
                             created_at: Date.now()
                         };
+                        if (linkedBizId) newOpp.business_id = linkedBizId;
                         const oppId = await NF.DB.put('opportunities', newOpp);
                         
                         // Always save observation too
@@ -1461,6 +1474,33 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         });
         
         app.go('Pipeline');
+        
+        const hasGemini = await NF.DB.getSetting('gemini_api_key');
+        if (hasGemini) {
+            app.runAIDiagnostics(oppId).then(() => app.render());
+        }
+    },
+    spawnBusinessOpportunity: async (bizId) => {
+        const title = await app.showDialog('prompt', 'Spawn Opportunity', 'What opportunity are you pursuing here?');
+        if (!title) return;
+        
+        const oppId = 'opp_' + Date.now();
+        await NF.DB.put('opportunities', {
+            id: oppId,
+            title: title,
+            leverage: 5,
+            velocity: 5,
+            conviction: 5,
+            calculated_score: 50,
+            status: 'Validation',
+            next_action: 'Define specific target audience',
+            exit_conditions: 'Kill if no validation in 14 days',
+            evidence: [],
+            observations: [],
+            business_id: bizId
+        });
+        
+        app.go('Opportunity', oppId);
         
         const hasGemini = await NF.DB.getSetting('gemini_api_key');
         if (hasGemini) {

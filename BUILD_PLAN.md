@@ -72,7 +72,7 @@
 - [ ] DevTools offline mode, hard reload: app boots fully, all views render, capture saves.
 - [ ] Deploy a trivial `app.js` change: online reload picks it up without a cache-name change.
 
-### ☐ MISSION 5 — Dead Feature Resurrection (items #9, #10, #11)
+### ☑ MISSION 5 — Dead Feature Resurrection (items #9, #10, #11)
 **Goal:** the Board is reachable, icons render, businesses can be created and truthfully linked.
 **Files:** `index.html` (SVG sprite), `app.js` (renderOpportunity ~409, renderBusinesses ~537, renderBusinessDetail ~566, spawn/capture link points).
 **Steps:**
