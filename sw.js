@@ -1,9 +1,10 @@
-const CACHE_NAME = 'north-field-os-v3';
+const CACHE_NAME = 'dhaula-os-v4.0';
 const ASSETS = [
     './',
     './index.html',
     './app.js',
     './modules/db.js',
+    './data/personas.js',
     './modules/boardroom.js',
     './data/journal.js',
     './data/bibles.js',

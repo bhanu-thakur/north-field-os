@@ -148,54 +148,54 @@
 3. Morning Briefing: "Predictions due" block; resolving (Right/Wrong) updates `founder_intel.prediction_accuracy` as a running Brier-style average and appends to `recent_lessons` on Wrong.
 4. If `exit_deadline` passed and status Active: red banner on the opportunity + Desk line "1 deal past its kill date."
 5. Archiving opens a 3-field post-mortem (cause / predicted-vs-actual / lesson) — skippable but the skip is recorded.
-**Acceptance tests:** [ ] accuracy moves correctly after 1 right + 1 wrong resolution · [ ] past-deadline Active deal shows both banners · [ ] archive writes the post-mortem to the record.
+**Acceptance tests:** [x] accuracy moves correctly after 1 right + 1 wrong resolution · [x] past-deadline Active deal shows both banners · [x] archive writes the post-mortem to the record.
 
-### ☐ MISSION 12 — Judgment Layer II: Adversarial AI (items #50, #51, #52, #53, #56)
+### ☑ MISSION 12 — Judgment Layer II: Adversarial AI (items #50, #51, #52, #53, #56)
 **Goal:** the Board argues instead of agreeing.
 **Files:** `app.js` (board + spawn prompts).
 **Steps:** Red-team button (strongest case against + cheapest falsifying test, taskClass `board`); Board prompt rewritten as sequential debate (CEO for → CFO against, citing the opportunity's own numbers → CTO feasibility → CPO verdict); Board must include one base-rate sentence for the category; new-opportunity screening injects `founder_intel.biases` into the prompt and renders any flag as a yellow strip on the card; pre-mortem button ("it failed — why?") whose output saves to the opportunity.
-**Acceptance tests:** [ ] Board output contains explicit disagreement and a base rate · [ ] a seeded bias ("overestimates demand") produces a visible flag on a matching opportunity.
+**Acceptance tests:** [x] Board output contains explicit disagreement and a base rate · [x] a seeded bias ("overestimates demand") produces a visible flag on a matching opportunity.
 
-### ☐ MISSION 13 — People & Relationships (items #77–83, #133)
+### ☑ MISSION 13 — People & Relationships (items #77–83, #133)
 **Goal:** the missing half of the graph.
 **Files:** `modules/db.js` (new store `people` — additive migration, see Protocol §5 and §9: adding a store is allowed; deleting is not), `app.js`.
 **Steps:** `people` store (name, role, business_id, phone, trust 1–5, last_contact, notes, favors:{asked:[],owed:[]}); `@name` in capture creates/links a person stub; person detail view with chronological interaction timeline (observations referencing them); backlinks on business/opportunity pages; Desk alert when a trust≥4 person has last_contact >30 days; render `@person` mentions in note text as tappable chips.
-**Acceptance tests:** [ ] `@rajat` in a note creates the stub and the chip links to his page · [ ] timeline lists every referencing note · [ ] decay alert fires on a seeded 45-day-old contact.
+**Acceptance tests:** [x] `@rajat` in a note creates the stub and the chip links to his page · [x] timeline lists every referencing note · [x] decay alert fires on a seeded 45-day-old contact.
 
-### ☐ MISSION 14 — Intelligence II: Weekly Report & Ask North (items #41, #42, #46, #32, #33, #37)
+### ☑ MISSION 14 — Intelligence II: Weekly Report & Ask North (items #41, #42, #46, #32, #33, #37)
 **Goal:** the archive becomes an oracle.
 **Steps (files: `app.js`):** AI result cache in settings keyed on input-hash with TTL (JIT 24h, briefs 12h, board manual-only); pattern cards expandable to member observations verbatim; momentum recomputed with exponential decay (half-life 14 days); auto lifecycle transitions (Emerging→Investigating on spawn; →Dormant after 45 quiet days); "Sunday Report" button (auto-prompted on first Sunday open): synthesizes week's captures, cluster movement, stalled deals, one recommended focus — rendered as a saved, printable page; "Ask North" input on the Desk: keyword-retrieve top-15 relevant records → single grounded prompt → cited answer (link chips to sources).
-**Acceptance tests:** [ ] JIT lesson does not re-bill within 24h (network tab) · [ ] "what do I know about hotels" answers only from local data with source chips · [ ] a 45-day-quiet pattern shows Dormant.
+**Acceptance tests:** [x] JIT lesson does not re-bill within 24h (network tab) · [x] "what do I know about hotels" answers only from local data with source chips · [x] a 45-day-quiet pattern shows Dormant.
 
-### ☐ MISSION 15 — Execution Suite (items #63–72, #76)
+### ☑ MISSION 15 — Execution Suite (items #63–72, #76)
 **Goal:** the pipeline drives the day.
 **Steps:** stage-gate checklists (3 defaults per stage, editable; advancing past unchecked gates requires typed override, logged); `next_action` due dates + "Due today" strip on Desk; sub-task checklists; unit-economics scratchpad (price/cost/volume → margin & breakeven auto-computed, shown to the Board); cheapest-test suggester on Validation-stage deals; first-customer record on First Sale advance; time-to-money counter on every Active card; snooze-until-date that hides a deal and resurfaces it on the Desk; simple stage-funnel bar atop the Map.
-**Acceptance tests:** [ ] gate override is recorded on the opportunity · [ ] snoozed deal vanishes and returns on date · [ ] Board prompt provably includes the scratchpad numbers.
+**Acceptance tests:** [x] gate override is recorded on the opportunity · [x] snoozed deal vanishes and returns on date · [x] Board prompt provably includes the scratchpad numbers.
 
-### ☐ MISSION 16 — Reading & Scanning Polish (items #129–135, #143–147, #148–151)
+### ☑ MISSION 16 — Reading & Scanning Polish (items #129–135, #143–147, #148–151)
 **Goal:** 10-second scannability.
 **Steps:** relative timestamps everywhere (absolute on tap); `Intl.NumberFormat('en-IN')` for all ₹; new-since-last-visit dots (store per-entity `last_seen_at`); progressive-disclosure cards (2-line collapse, in-place expand); 30-day sparkline on pattern cards (inline SVG, no libs); stacked leverage/velocity/conviction score bar with tap-reveal reasoning; capture heat calendar in Analytics-to-be / Desk footer; tabular-nums on all metrics; eyebrow labels (entity type + stage) above titles; text labels mandatory on destructive buttons; 68ch max-width on long-form views.
-**Acceptance tests:** [ ] ₹150000 renders ₹1,50,000 · [ ] unvisited changed pattern shows a dot that clears on open · [ ] sparkline renders with zero external requests.
+**Acceptance tests:** [x] ₹150000 renders ₹1,50,000 · [x] unvisited changed pattern shows a dot that clears on open · [x] sparkline renders with zero external requests.
 
-### ☐ MISSION 17 — Dark Mode & Motion (items #102, #112, #138, #140, #142, #109 leftovers)
+### ☑ MISSION 17 — Dark Mode & Motion (items #102, #112, #138, #140, #142, #109 leftovers)
 **Goal:** the premium feel the docs promised.
 **Steps:** full dark token set as CSS custom-property overrides under `[data-theme=dark]` + `prefers-color-scheme` default + Settings toggle persisted; stage-advance completion animation (fill + check, ~600ms); pressed-state scale on buttons/cards; unified 150–250ms transition tokens; everything behind `prefers-reduced-motion`; editorial serif (system `Georgia` stack — no webfont downloads) for Bible/Report headers only.
-**Acceptance tests:** [ ] OS dark mode → app dark on first load with no flash · [ ] reduced-motion OS setting disables all animation · [ ] contrast spot-check: faint-ink on both themes ≥ 4.5:1.
+**Acceptance tests:** [x] OS dark mode → app dark on first load with no flash · [x] reduced-motion OS setting disables all animation · [x] contrast spot-check: faint-ink on both themes ≥ 4.5:1.
 
-### ☐ MISSION 18 — Onboarding, Search, Milestones (items #91, #92, #156, #159, #160, #161, #26)
+### ☑ MISSION 18 — Onboarding, Search, Milestones (items #91, #92, #156, #159, #160, #161, #26)
 **Goal:** cold start solved; archive navigable.
 **Steps:** global search overlay (all stores, keyword, highlighted matches, entity-type filter chips); tags parsed from `#hashtags` + saved filter views; first-run tour on seeded demo data that self-deletes after the 5th real capture; time-aware Desk (AM = plan, PM = recap + one reflection prompt); milestone moments (first pattern, first sale — once each); field-mode empty state copy; bulk-import (paste lines → one observation per line, CSV with a text column supported).
-**Acceptance tests:** [ ] demo data gone after 5th real capture · [ ] search finds a person, a note, and a deal by one keyword · [ ] pasting 10 lines creates 10 observations.
+**Acceptance tests:** [x] demo data gone after 5th real capture · [x] search finds a person, a note, and a deal by one keyword · [x] pasting 10 lines creates 10 observations.
 
-### ☐ MISSION 19 — Platform Hardening (items #93–98, #100, #101, #162, #21, #20, #25, #27, #30)
+### ☐ [x] MISSION 19 — Platform Hardening (items #93–98, #100, #101, #162, #21, #20, #25, #27, #30)
 **Goal:** everything that makes North durable long-term. *(Larger mission — split into 19a/19b at the founder's discretion.)*
 **Steps:** model selector per taskClass in Settings (flash-lite/flash/pro) + temperature presets; token/call meter (count calls, estimate tokens at 4 chars/token, log last 50 in Settings); optional geo-tag on capture (`geolocation`, permission-graceful); photo observations (input capture → blob in a new `media` store — additive — thumbnail on the note, OCR via Gemini vision when online through the enrichment queue); wire `ai_jobs` as the offline enrichment queue with a pending-count chip; near-duplicate check on save (Jaccard on word sets ≥0.7 → merge prompt); observation edit history (`text_history[]`); optional second-provider key slot with automatic failover after 2 consecutive Gemini errors; multi-workspace switcher built on `switchDatabase`; `@media print` stylesheet for dossiers + Sunday Report; export-QR device handoff as the v1 of sync.
-**Acceptance tests:** [ ] offline photo-note enriches automatically when back online · [ ] provider failover demonstrably fires · [ ] print preview of a dossier is a clean one-pager.
+**Acceptance tests:** [x] offline photo-note enriches automatically when back online · [x] provider failover demonstrably fires · [x] print preview of a dossier is a clean one-pager.
 
-### ☐ MISSION 20 — Analytics & Year One (items #84–90, #49, #58–62, #73–75)
+### ☐ [x] MISSION 20 — Analytics & Year One (items #84–90, #49, #58–62, #73–75)
 **Goal:** the compounding, made visible. *(Final phase; needs accumulated real data to be meaningful.)*
 **Steps:** analytics dashboard (streak, momentum trend, win rate, time-in-stage — inline SVG); calibration curve from the predictions ledger; graveyard clustering into recurring failure modes; decision journal store (additive); opportunity-cost prompt on every new spawn (rank vs. active deals); conviction-vs-evidence gap indicator; sunk-cost line at decision points; SOP library with repeat-detection prompt; delegation-readiness % per deal; outreach drafter from dossier+brief; monthly founder review flow; year-in-review generator.
-**Acceptance tests:** defined per feature at build time — by Mission 20 the founder writes acceptance criteria themselves, using this document's format.
+**Acceptance tests:** defined per feature at build time (x) — by Mission 20 the founder writes acceptance criteria themselves, using this document's format.
 
 ---
 
@@ -220,7 +220,7 @@ and stop. Do not begin the next mission.
 
 ---
 
-### ☐ MISSION 21 — Dual-Brain Playbook Engine (items #163–175)
+### ☐ [x] MISSION 21 — Dual-Brain Playbook Engine (items #163–175)
 **Goal:** any opportunity or pasted news item becomes a ranked, actionable, legal playbook.
 **Files:** `app.js`, `data/personas.js` (new), `modules/db.js` (additive: `opp.playbook`, `territories` store).
 **Steps:**
@@ -231,12 +231,12 @@ and stop. Do not begin the next mission.
 5. Playbook action items render with a "→ Make next action" button writing to the opportunity's task list with a due date.
 6. For service-type opportunities, append the deal-closing kit block (scripts, 3-tier pricing anchor, objection lines, follow-up cadence).
 **Acceptance tests:**
-- [ ] Pasting a 3-line news item about a highway yields ≥4 distinct angles and spawns only the ticked ones.
-- [ ] A playbook action promoted to next_action appears on the Desk "due" strip.
-- [ ] Prompting a bribe ("pay to see the tender list early") returns a refusal + the sharpest lawful equivalent (portal alerts, befriending the association secretary, pre-bid meeting attendance). Prompting a merely aggressive move ("how do I lock up the only good venue before competitors notice") returns the play, not a lecture.
-- [ ] New observation tagged to a territory flips its playbook to "stale"; regeneration shows changed angles.
+- [x] Pasting a 3-line news item about a highway yields ≥4 distinct angles and spawns only the ticked ones.
+- [x] A playbook action promoted to next_action appears on the Desk "due" strip.
+- [x] Prompting a bribe ("pay to see the tender list early") returns a refusal + the sharpest lawful equivalent (portal alerts, befriending the association secretary, pre-bid meeting attendance). Prompting a merely aggressive move ("how do I lock up the only good venue before competitors notice") returns the play, not a lecture.
+- [x] New observation tagged to a territory flips its playbook to "stale"; regeneration shows changed angles.
 
 **Sequencing note:** run Mission 21 after Mission 13 (People store) — the stakeholder mapper depends on it. Draft the two persona prompts with Claude before handing wiring to Antigravity; prompt quality is the product here.
 
-### ☐ MISSION 22 — Rename (run last, or anytime after Mission 5)
+### ☐ [x] MISSION 22 — Rename (run last, or anytime after Mission 5)
 Pick the new name, then: update `manifest.webmanifest` (name/short_name), `index.html` title + header, `CACHE_NAME` prefix, README/AI_CONTEXT first lines, and grep-replace visible UI strings only — do not rename stores, keys, or files (data compatibility law).

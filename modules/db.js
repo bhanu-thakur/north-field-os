@@ -2,7 +2,7 @@ window.NF = window.NF || {};
 
 NF.DB = (function() {
     let DB_NAME = 'NorthFieldOS';
-    const DB_VERSION = 4; // Bumped to force schema upgrade for observations/patterns
+    const DB_VERSION = 8; // Bumped for territories
     let dbInstance = null;
 
     const STORES = [
@@ -11,7 +11,12 @@ NF.DB = (function() {
         'businesses',
         'observations',
         'patterns',
+        'people',
         'ai_jobs',
+        'media',
+        'decision_journal',
+        'sops',
+        'territories',
         'settings'
     ];
 
@@ -133,7 +138,11 @@ NF.DB = (function() {
             const tx = db.transaction(storeName, 'readonly');
             const store = tx.objectStore(storeName);
             const request = store.get(id);
-            request.onsuccess = () => resolve(request.result);
+            request.onsuccess = () => {
+                const res = request.result;
+                if (res && res._deleted_at && storeName !== 'settings') resolve(undefined);
+                else resolve(res);
+            };
             request.onerror = () => reject(request.error);
         });
     }
@@ -144,7 +153,11 @@ NF.DB = (function() {
             const tx = db.transaction(storeName, 'readonly');
             const store = tx.objectStore(storeName);
             const request = store.getAll();
-            request.onsuccess = () => resolve(request.result);
+            request.onsuccess = () => {
+                const arr = request.result;
+                if (storeName === 'settings') resolve(arr);
+                else resolve(arr.filter(x => !x._deleted_at));
+            };
             request.onerror = () => reject(request.error);
         });
     }
@@ -172,13 +185,34 @@ NF.DB = (function() {
     }
 
     async function remove(storeName, id) {
+        if (storeName === 'settings') {
+            const db = await init();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
         const db = await init();
         return new Promise((resolve, reject) => {
             const tx = db.transaction(storeName, 'readwrite');
             const store = tx.objectStore(storeName);
-            const request = store.delete(id);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+            const getReq = store.get(id);
+            getReq.onsuccess = () => {
+                const existing = getReq.result;
+                if (existing) {
+                    existing._deleted_at = Date.now();
+                    const putReq = store.put(existing);
+                    putReq.onsuccess = () => resolve();
+                    putReq.onerror = () => reject(putReq.error);
+                } else {
+                    resolve();
+                }
+            };
+            getReq.onerror = () => reject(getReq.error);
         });
     }
     
@@ -259,23 +293,84 @@ NF.DB = (function() {
     }
 
     return {
-        init, get, getAll, put, remove, getSetting, setSetting, switchDatabase, nukeDatabase, exportAll, importAll
+        init,
+        get,
+        getAll,
+        put,
+        delete: remove,
+        getSetting,
+        setSetting,
+        exportAll, nukeDatabase,
+        importAll,
+        switchDatabase: async (newName) => {
+            if (dbInstance) {
+                dbInstance.close();
+                dbInstance = null;
+            }
+            DB_NAME = newName || 'NorthFieldOS';
+            await init();
+            window.location.reload();
+        }
     };
 })();
 
 NF.AI = (function() {
+    async function hashString(str) {
+        const msgBuffer = new TextEncoder().encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function generateCachedContent(prompt, opts = {}, ttlHours = 24) {
+        if (opts.noCache) return await generateContent(prompt, opts);
+        
+        const hash = await hashString(prompt + (opts.systemInstruction || ''));
+        const cacheKey = 'aicache_' + hash;
+        const cached = await get('settings', cacheKey);
+        
+        if (cached) {
+            const ageHours = (Date.now() - cached.value.timestamp) / (1000 * 60 * 60);
+            if (ageHours < ttlHours) {
+                return { ok: true, text: cached.value.text, cached: true };
+            }
+        }
+        
+        const res = await generateContent(prompt, opts);
+        if (res.ok) {
+            await put('settings', { id: cacheKey, value: { text: res.text, timestamp: Date.now() } });
+        }
+        return res;
+    }
+
     async function generateContent(prompt, opts = {}) {
-        const apiKey = await NF.DB.getSetting('gemini_api_key');
+        let apiKey = await NF.DB.getSetting('gemini_api_key');
+        let secondaryKey = await NF.DB.getSetting('gemini_api_key_secondary');
+        let currentKeyIsSecondary = false;
+        
+        let consecutiveErrors = await NF.DB.getSetting('gemini_consecutive_errors') || 0;
+        if (consecutiveErrors >= 2 && secondaryKey) {
+            apiKey = secondaryKey;
+            currentKeyIsSecondary = true;
+        }
+
         if (!apiKey) return { ok: false, text: null, error: 'no_key' };
         
         const tokenBudgets = { capture: 300, cluster: 2000, board: 1500, chat: 600, brief: 800 };
-        const maxTokens = opts.maxOutputTokens || (opts.taskClass ? tokenBudgets[opts.taskClass] : 300) || 300;
+        const tc = opts.taskClass || 'capture';
+        const maxTokens = opts.maxOutputTokens || tokenBudgets[tc] || 300;
+        
+        const modelTier = await NF.DB.getSetting('ai_model_' + tc) || 'gemini-2.5-flash-lite';
+        const temp = parseFloat(await NF.DB.getSetting('ai_temp_' + tc)) || opts.temperature || 0.2;
+        
+        const promptString = typeof prompt === 'string' ? prompt : JSON.stringify(prompt);
+        const inputTokens = Math.ceil((promptString.length + (opts.systemInstruction ? opts.systemInstruction.length : 0)) / 4);
         
         try {
             const body = {
-                contents: [{ parts: [{ text: prompt }] }],
+                contents: [{ parts: Array.isArray(prompt) ? prompt : [{ text: prompt }] }],
                 generationConfig: { 
-                    temperature: opts.temperature || 0.2,
+                    temperature: temp,
                     maxOutputTokens: maxTokens
                 }
             };
@@ -284,7 +379,7 @@ NF.AI = (function() {
                 body.system_instruction = { parts: [{ text: opts.systemInstruction }] };
             }
 
-            const doFetch = () => fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`, {
+            const doFetch = () => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelTier}:generateContent`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -298,14 +393,12 @@ NF.AI = (function() {
             if (res.status === 429) {
                 await new Promise(r => setTimeout(r, 2000 + Math.random() * 1000));
                 res = await doFetch();
-                if (res.status === 429) {
-                    return { ok: false, text: null, error: 'rate_limited' };
-                }
             }
             
             if (!res.ok) {
                 const errText = await res.text();
                 console.error('Gemini API Error:', res.status, errText);
+                await NF.DB.setSetting('gemini_consecutive_errors', consecutiveErrors + 1);
                 return { ok: false, text: null, error: 'http_' + res.status };
             }
             
@@ -313,11 +406,33 @@ NF.AI = (function() {
             const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text === undefined) {
                 console.error('Gemini API Error: Invalid payload or safety block', data);
+                await NF.DB.setSetting('gemini_consecutive_errors', consecutiveErrors + 1);
                 return { ok: false, text: null, error: 'empty_candidate' };
             }
+            
+            await NF.DB.setSetting('gemini_consecutive_errors', 0);
+            
+            // Telemetry
+            const outputTokens = Math.ceil(text.length / 4);
+            const totalTokens = inputTokens + outputTokens;
+            
+            let totalCalls = (await NF.DB.getSetting('ai_meter_calls')) || 0;
+            let totalTokensMeter = (await NF.DB.getSetting('ai_meter_tokens')) || 0;
+            let recentLogs = (await NF.DB.getSetting('ai_last_50_logs')) || [];
+            
+            totalCalls += 1;
+            totalTokensMeter += totalTokens;
+            recentLogs.unshift({ ts: Date.now(), task: tc, model: modelTier, tokens: totalTokens, secondary: currentKeyIsSecondary });
+            if (recentLogs.length > 50) recentLogs.pop();
+            
+            await NF.DB.setSetting('ai_meter_calls', totalCalls);
+            await NF.DB.setSetting('ai_meter_tokens', totalTokensMeter);
+            await NF.DB.setSetting('ai_last_50_logs', recentLogs);
+            
             return { ok: true, text: text, error: null };
         } catch (err) {
             console.error('Gemini API Error: Network failure.', err);
+            await NF.DB.setSetting('gemini_consecutive_errors', consecutiveErrors + 1);
             return { ok: false, text: null, error: 'network' };
         }
     }
@@ -333,5 +448,5 @@ NF.AI = (function() {
         }
     }
     
-    return { generateContent, extractJSON };
+    return { generateContent, generateCachedContent, extractJSON };
 })();

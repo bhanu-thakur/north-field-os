@@ -1,5 +1,57 @@
 # NORTH OS — CHANGELOG
 
+
+## [v1.21.0] - 2026-07-02
+### Added
+- **Mission 21: Dual-Brain Playbook Engine**
+- Added data/personas.js with OPERATOR and STRATEGIST dual-brain AI personas prioritizing sharp-not-dirty asymmetric leverage.
+- Added **Paste News** feature to the Discovery Feed to automatically spawn opportunity angles from raw news text.
+- Added **Territories** engine. Create thematic keyword clusters that automatically aggregate relevant field evidence into one view.
+- Added Territory Playbooks. Synthesize linked evidence into actionable strategic plans using the STRATEGIST and OPERATOR brains.
+- Added **Opportunity Playbook Generator**. Instantly generate 72-hour execution plans, stakeholder leverage maps, and positioning statements directly inside any Opportunity.
+- Playbooks now generate inline Make next action buttons to instantly promote generated steps to your execution desk.
+- Deal-closing kits (scripts, 3-tier pricing anchors) now conditionally render for service/B2B opportunities.
+- Bumped IndexedDB to v8 to initialize the new 	erritories store.
+
+## [v1.20.0] - 2026-07-02
+### Added
+- **Mission 20: Analytics & Year One**
+- Added System Analytics dashboard featuring capture streak, win rate, and deal age.
+- Added Founder Calibration Curve inline SVG to measure prediction accuracy vs reality.
+- Added Graveyard Clustering analysis to extract recurring failure modes from dead deals.
+- Added Decision Journal logic to log decisions with context (pp.logDecision).
+- Added Opportunity Cost prompt on idea generation to enforce baseline quality checks.
+- Added Delegation Readiness progress bar on Opportunity views based on SOP presence.
+- Added 'Save as SOP' extraction from Opportunity next actions.
+- Added 'Draft Outreach' AI prompt on Business dossiers.
+- Added Monthly Founder Review modal to extract painful truths into systems.
+- Integrated new stores decision_journal and sops into IndexedDB.
+## [2026-07-02] - Mission 18: Onboarding, Search, Milestones
+- First-Run Experience: Added a "Welcome to North" 3-step overlay tour and initialized empty databases with dummy data (2 patterns, 3 observations).
+- Auto-cleanup: Wrote logic to transparently delete all dummy data upon the user's 5th actual capture.
+- OmniSearch: Added a global fuzzy-search modal via `Ctrl+K` that concurrently queries Opportunities, Patterns, People, and Observations, featuring keyword highlighting and entity-type filter chips.
+- Discovery Filters: Built hashtag extraction (`#tag`) for observations and injected pill filters atop the Discovery Feed for quick views.
+- Time-Aware Desk: Transformed the Pipeline view to contextualize based on hour (AM = Morning Plan, PM = Evening Recap with a reflection prompt saved to DB).
+- Milestones: Configured system-wide toasts and DB flags for major founder events ("First Pattern Emerged", "First Sale Achieved").
+- Empty States & Import: Added a dedicated "Empty Field" zero-state copy and built a Bulk Import tool that accepts newline-separated pasted text.
+
+## [2026-07-02] - Mission 17: Dark Mode & Motion
+- Theme Engine: Implemented full dark mode token set using `[data-theme="dark"]` with system `prefers-color-scheme` fallback. Added a persisted toggle to System Settings.
+- Script Injection: Added inline script in `<head>` to prevent FOUC (Flash of Unstyled Content) during theme loading.
+- Motion Polish: Added `650ms` stage-advance completion animation (fill + check mark) and universal pressed-state scale down on interactive components.
+- Motion Restraint: Wrapped animations and transitions with `@media (prefers-reduced-motion: reduce)` constraint.
+- Typography: Replaced the `Fraunces` webfont with a pure system-native `Georgia` stack to keep editorial headers crisp without extra requests.
+- Contrast Compliance: Re-tuned the `--ink-faint` design token on both light and dark themes to strictly hit a 4.5:1 accessible contrast ratio.
+
+## [2026-07-02] - Mission 16: Reading & Scanning Polish
+- Relative Timestamps: Replaced absolute dates with relative timestamps (`app.timeAgo`) across the app.
+- Currency Formatting: Applied `Intl.NumberFormat('en-IN')` to all ₹ amounts in Unit Economics.
+- New-Dot Indicators: Added `last_seen_at` tracking with red dot indicators for unvisited updated patterns.
+- Progressive Disclosure: Added `line-clamp-2` with click-to-expand to Discovery Feed cards.
+- 30-Day Sparklines: Generated pure inline SVG sparklines for pattern velocity.
+- Stacked Score Bar: Replaced simple score text with a visual stacked bar for Leverage/Velocity/Conviction.
+- Heat Calendar: Implemented a 35-day GitHub-style heat calendar at the bottom of the Morning Briefing.
+- UI Polish: Enabled `tabular-nums`, added "Eyebrow" labels to dossiers, updated destructive buttons to have clear text (e.g. "Delete Log"), and enforced `68ch` max-width constraints on reading elements.
 ## [2026-07-02] - Mission 11: Judgment Layer I (Predictions & Kill Discipline)
 - Predictions Engine: Added the ability to log predictions with a confidence slider on opportunities. Unresolved predictions surface in the Morning Briefing based on their resolve-by dates.
 - Calibration & Lessons: Resolving a prediction correctly/incorrectly now updates the founder's overall Brier-style accuracy score. Incorrect predictions immediately force a post-mortem lesson extraction.
@@ -130,7 +182,7 @@
 
 ## [V4.0.0-alpha] - Pivot to The Spearhead OS
 
-All notable changes to North Field OS will be documented in this file.
+All notable changes to Dhaula OS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [4.0.0] - 2026-07-01
@@ -157,6 +209,14 @@ Based on a ruthless product designer review, North was stripped of its "Manageme
 - Split business detail screens into "The Reality" (Known Patterns / Problems) and "The Leverage" (Active Experiments / Next Physical Move).
 - Killed the "Evening Review" and "Repeatable Assets" sections to eliminate chore-like features.
 
+**Build 5: Execution Suite (Mission 15)**
+- Stage-gate checklists: Configurable gating criteria per pipeline stage. Overrides require typed confirmation and are logged to evidence.
+- Time management: Opportunities now track `snooze_until`, `created_at` (Time-to-money), and `next_action_due`.
+- Due Today strip: The Morning Briefing automatically extracts and highlights any deals with actions due today.
+- Unit Economics Scratchpad: Integrated Price/Cost/Volume tracking on deals, automatically passed to the Board AI for critique.
+- Falsification: Added a "Cheapest Test Suggester" to Validation-stage deals to instantly query AI for the fastest, cheapest way to kill a deal.
+- Stage funnel: Added a dynamic summary funnel directly atop the Opportunity Map.
+
 ## [3.0.0] - 2026-06-30
 ### Added / Changed
 - **Opportunity Engine Pivot:** Architecture redesigned exclusively around the `Opportunity` entity.
@@ -170,3 +230,17 @@ Based on a ruthless product designer review, North was stripped of its "Manageme
 - **The Compounding Engine (v0.3):** Live `ai.js` module for Google Gemini extraction, Settings view for API Keys, and Auto-Extract in Inbox.
 - **The Graph & Bibles (v0.2):** Industry/People Bibles and Manual Tagging in Inbox.
 - **The Field Recorder (v0.1):** Mission Console, Quick Capture FAB, Observation Inbox, Offline-first Service Worker, and Institutional Memory scaffolding.
+
+## [v1.19.0] - 2026-07-02
+### Added
+- **Mission 19: Platform Hardening**
+- Implemented soft deletes (_deleted_at) in IndexedDB layer.
+- Added Universal Capture geolocation and camera photo attachment support.
+- Configured local offline vision queue (i_jobs) for processing images when online.
+- Added Jaccard similarity-based duplicate detection for observations.
+- Exposed detailed token telemetry, 50-call log, and task-specific model routing in Settings.
+- Added secondary (fallback) Gemini API key field and automatic failover logic.
+- Implemented 
+orthos://import?data= URL parsing and QR payload generation for mobile syncing.
+- Injected specific \@media print\ rules to hide UI chrome and enforce unbordered cards.
+
