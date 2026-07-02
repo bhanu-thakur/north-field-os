@@ -85,7 +85,7 @@
 - [ ] No blank icon boxes anywhere (visual sweep of capture modal, patterns, tutor, diagnostics).
 - [ ] A business created via the form appears in Dossiers; an opportunity spawned from it shows under it; unrelated opportunities do not.
 
-### ☐ MISSION 6 — One Scoring Truth + One Lifecycle (items #12, #13)
+### ☑ MISSION 6 — One Scoring Truth + One Lifecycle (items #12, #13)
 **Goal:** every score means the same thing; every stage list is the same list.
 **Files:** `app.js` (spawnHypothesis, runAIDiagnostics ~875, advanceStage, renderOpportunity timeline, renderPipeline grouping).
 **Steps:**

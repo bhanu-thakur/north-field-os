@@ -1,5 +1,11 @@
 # NORTH OS — CHANGELOG
 
+## [2026-07-02] - Mission 6: One Scoring Truth + One Lifecycle
+- Unified the Opportunity Lifecycle: Extracted the lifecycle into a single global array (`LIFECYCLE`), ensuring timeline visualization, filtering, and stage advancement logic are perfectly in sync.
+- Consolidated Scoring Logic: Replaced hardcoded math with a unified `computeScore` function across all AI and fallback scoring paths.
+- Replaced Magic with Determinism: Removed all `Math.random()` score generation in favor of a fixed fallback (all metrics at 5) when no API key is present.
+- Improved Data Transparency: Fallback scores are now tagged with `score_source: 'fallback'` and visibly display an "est." tag in the UI until AI diagnostics overwrite them.
+
 ## [2026-07-02] - Mission 5: Dead Feature Resurrection
 - Unlocked the Board: Added the "Convene Board" button to the Opportunity view, appropriately gated behind the presence of an API key.
 - Upgraded the Business Creation Flow: The "Add Entity" modal now captures full context (Name, Industry, Contact Person, Phone, and Notes).

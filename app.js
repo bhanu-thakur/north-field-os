@@ -6,6 +6,9 @@ NF.State = {
     activeId: null // Used for routing to specific Opportunity/Business
 };
 
+const LIFECYCLE = ['Validation','First Sale','Delivery','SOP','Operator','Automation','Software'];
+const computeScore = (leverage, velocity, conviction) => Math.round(((leverage * 0.5) + (velocity * 0.3) + (conviction * 0.2)) * 10);
+
 const renderSidebar = () => {
     return `
         <aside class="side">
@@ -127,7 +130,7 @@ const renderMorning = async () => {
     
     // 3. Closest to Revenue
     let revenueHtml = '';
-    const revenueOpps = opps.filter(o => o.status === 'Validation' || o.status === 'First Sale').sort((a,b) => b.velocity - a.velocity);
+    const revenueOpps = opps.filter(o => o.status === LIFECYCLE[0] || o.status === LIFECYCLE[1]).sort((a,b) => b.velocity - a.velocity);
     if (revenueOpps.length > 0) {
         const closest = revenueOpps[0];
         revenueHtml = `
@@ -436,9 +439,8 @@ const renderOpportunity = async () => {
     const hasAI = !!apiKey;
     
     // Compounding Timeline
-    const stages = ['Observation', 'Pattern', 'Hypothesis', 'Validation', 'First Sale', 'Business'];
-    const currentIdx = stages.indexOf(opp.status) === -1 ? 3 : stages.indexOf(opp.status);
-    let timelineHtml = stages.map((s, idx) => {
+    const currentIdx = LIFECYCLE.indexOf(opp.status) === -1 ? 0 : LIFECYCLE.indexOf(opp.status);
+    let timelineHtml = LIFECYCLE.map((s, idx) => {
         let state = 'done';
         if (isArchived) state = idx <= currentIdx ? 'done' : '';
         else if (idx === currentIdx) state = 'now';
@@ -457,7 +459,7 @@ const renderOpportunity = async () => {
                         ${isArchived ? '<span class="pill" style="margin-top:8px;">Archived (Graveyard)</span>' : ''}
                     </div>
                     <div style="display:flex; gap:12px; align-items:center;">
-                        <div class="pill pill--brand" style="font-size:0.9rem;">Score: ${opp.calculated_score}</div>
+                        <div class="pill pill--brand" style="font-size:0.9rem;">Score: ${opp.calculated_score}${opp.score_source === 'fallback' ? ' <span style="opacity:0.8; font-size:0.8em; margin-left:4px;">est.</span>' : ''}</div>
                         ${!isArchived ? (hasAI 
                             ? `<button class="btn btn--sm" id="btn-convene-board" onclick="app.runBoardAnalysis('${opp.id}')" style="background:#111; color:#fff; border:1px solid #333;"><svg class="ic" style="margin-right:6px;"><use href="#i-users"/></svg> Convene Board</button>`
                             : `<button class="btn btn--sm" id="btn-convene-board" style="background:#333; color:#888; border:1px solid #444; cursor:not-allowed;" title="API Key Required"><svg class="ic" style="margin-right:6px;"><use href="#i-users"/></svg> Convene Board</button>`
@@ -1003,7 +1005,8 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
                 opp.conviction_text = scores.conviction_text;
                 
                 // Recalculate score
-                opp.calculated_score = Math.round(((opp.leverage * 0.5) + (opp.velocity * 0.3) + (opp.conviction * 0.2)) * 10);
+                opp.calculated_score = computeScore(opp.leverage, opp.velocity, opp.conviction);
+                opp.score_source = 'ai';
                 
                 await NF.DB.put('opportunities', opp);
                 app.render();
@@ -1378,18 +1381,17 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
     },
     advanceStage: async (id) => {
         const opp = await NF.DB.get('opportunities', id);
-        const stages = ['Validation', 'First Sale', 'Delivery', 'SOP', 'Business'];
-        const idx = stages.indexOf(opp.status);
+        const idx = LIFECYCLE.indexOf(opp.status);
         
-        if (idx < stages.length - 1) {
-            const confirmed = await app.showDialog('confirm', 'Advance Stage', `Advance opportunity from ${opp.status} to ${stages[idx+1]}?`);
+        if (idx > -1 && idx < LIFECYCLE.length - 1) {
+            const confirmed = await app.showDialog('confirm', 'Advance Stage', `Move to ${LIFECYCLE[idx+1]}? Have you met the exit conditions?`);
             if (confirmed) {
-                opp.status = stages[idx+1];
+                opp.status = LIFECYCLE[idx+1];
                 await NF.DB.put('opportunities', opp);
                 app.render();
             }
         } else {
-            app.showDialog('alert', 'Max Stage Reached', 'This opportunity has reached maximum enterprise value (Business stage).');
+            app.showDialog('alert', 'Max Stage Reached', `This opportunity has reached maximum enterprise value (${LIFECYCLE[LIFECYCLE.length - 1]}).`);
         }
     },
     archiveOpportunity: async (id) => {
@@ -1491,8 +1493,9 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             leverage: 5,
             velocity: 5,
             conviction: 5,
-            calculated_score: 50,
-            status: 'Validation',
+            calculated_score: computeScore(5, 5, 5),
+            score_source: 'fallback',
+            status: LIFECYCLE[0],
             next_action: 'Define specific target audience',
             exit_conditions: 'Kill if no validation in 14 days',
             evidence: [],
