@@ -149,9 +149,9 @@ details.exp .body p{margin:10px 0}
 .table th{text-align:left;font-family:'Roboto Mono',monospace;font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line-strong)}
 .table td{padding:10px;border-bottom:1px solid var(--line);color:var(--ink-soft);vertical-align:top}
 .table tr:hover td{background:#FAFBF8}
-.input,select.input,textarea.input{width:100%;border:1px solid var(--line-strong);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:.88rem;background:var(--card);color:var(--ink)}
+.input,select.input,textarea.input{width:100%;border:none;border-bottom:2px solid var(--line-strong);border-radius:6px 6px 0 0;padding:12px 14px;font-family:inherit;font-size:1rem;background:rgba(120,130,125,0.06);color:var(--ink);transition:border-color 0.2s, background 0.2s;}
 textarea.input{min-height:80px;resize:vertical;line-height:1.5}
-.input:focus{outline:none;border-color:var(--primary)}
+.input:focus{outline:none;border-bottom-color:var(--primary);background:rgba(120,130,125,0.1);}
 .field{margin-bottom:12px}.field label{display:block;font-size:.74rem;font-weight:600;color:var(--ink-soft);margin-bottom:5px;font-family:'Roboto Mono',monospace;letter-spacing:.03em;text-transform:uppercase}
 .backlinks{margin-top:22px;border-top:1px dashed var(--line-strong);padding-top:16px}
 .backlinks .bl-h{font-family:'Roboto Mono',monospace;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:10px}

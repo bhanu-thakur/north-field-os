@@ -1813,7 +1813,7 @@ const app = {
             });
             
             const div = document.createElement('div');
-            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px; backdrop-filter:blur(10px);';
+            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px; backdrop-filter:blur(10px);';
             div.innerHTML = `
                 <div style="background:var(--card); width:100%; max-width:600px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2); max-height:80vh; display:flex; flex-direction:column;">
                     <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600;">Spawn Opportunities from News</div>
@@ -1918,7 +1918,7 @@ const app = {
     openOmniSearch: () => {
         app._omniFilter = 'all';
         const div = document.createElement('div');
-        div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10000; display:flex; justify-content:center; align-items:flex-start; padding-top:10vh;';
+        div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:10000; display:flex; justify-content:center; align-items:flex-start; padding-top:10vh;';
         div.innerHTML = `
             <div style="background:var(--card); width:100%; max-width:600px; border-radius:12px; box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column;">
                 <input type="text" id="omni-input" class="input" placeholder="Search everywhere (Ctrl+K)..." style="width:100%; border:none; border-bottom:1px solid var(--line); border-radius:0; padding:20px; font-size:1.1rem; outline:none;" autocomplete="off">
@@ -2182,7 +2182,7 @@ const app = {
         
         // Add Mobile More Menu
         root.innerHTML += `
-        <div id="mobnav-more" onclick="if(event.target===this) app.toggleMoreMenu()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9998; align-items:flex-end;">
+        <div id="mobnav-more" onclick="if(event.target===this) app.toggleMoreMenu()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9998; align-items:flex-end;">
             <div style="width:100%; background:var(--card); border-radius:16px 16px 0 0; padding-bottom:env(safe-area-inset-bottom);">
                 <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600;">More Options</div>
                 <a class="navlink" onclick="app.toggleMoreMenu(); app.go('Discovery')" style="display:flex; padding:16px 24px; border-bottom:1px solid var(--line); align-items:center; gap:12px; color:var(--ink); text-decoration:none;"><svg class="ic"><use href="#i-bulb"/></svg> Discovery Feed</a>
@@ -3680,7 +3680,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         if (!opp) return;
 
         const div = document.createElement('div');
-        div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
+        div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
         div.innerHTML = `
             <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
                 <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Graveyard Post-Mortem</div>
@@ -3773,7 +3773,7 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         
         if (res.ok && res.text) {
             const div = document.createElement('div');
-            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
+            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
             div.innerHTML = `
                 <div style="background:var(--card); width:100%; max-width:600px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2); display:flex; flex-direction:column; max-height:80vh;">
                     <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600;">Drafted Outreach</div>
@@ -3854,7 +3854,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
     
     startFounderReview: () => {
         const div = document.createElement('div');
-        div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px; backdrop-filter:blur(10px);';
+        div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px; backdrop-filter:blur(10px);';
         div.innerHTML = `
             <div style="background:var(--card); width:100%; max-width:600px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
                 <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Monthly Founder Review</div>
@@ -3944,7 +3944,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
         if (res && res.ok) {
             let htmlRes = res.text.replace(/```html/gi, '').replace(/```/g, '').trim();
             const div = document.createElement('div');
-            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; padding:32px; overflow-y:auto; backdrop-filter:blur(10px);';
+            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; justify-content:center; padding:32px; overflow-y:auto; backdrop-filter:blur(10px);';
             div.innerHTML = `
                 <div style="background:#fff; width:100%; max-width:800px; border-radius:12px; padding:32px; box-shadow:0 12px 32px rgba(0,0,0,0.2); position:relative; min-height:max-content; margin:auto;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:24px; border-bottom:2px solid var(--ink); padding-bottom:16px;">
@@ -3975,7 +3975,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
             if (!opp) return resolve(false);
             
             const div = document.createElement('div');
-            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
+            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
             div.innerHTML = `
                 <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
                     <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Log a Decision</div>
@@ -4026,7 +4026,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
             if (!opp) return resolve(false);
             
             const div = document.createElement('div');
-            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
+            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
             div.innerHTML = `
                 <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
                     <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Log a Prediction</div>
@@ -4089,7 +4089,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
     showSpawnReviewDialog: (oppObj) => {
         return new Promise((resolve) => {
             const div = document.createElement('div');
-            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
+            div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
             div.innerHTML = `
                 <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
                     <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Spawn Opportunity</div>
@@ -4137,7 +4137,7 @@ Output strictly valid JSON: {"exit_conditions": "1. ...\\n2. ...", "exit_deadlin
         if (active.length > 0) {
             const oppCostConfirmed = await new Promise(resolve => {
                 const div = document.createElement('div');
-                div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
+                div.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; display:flex; justify-content:center; align-items:center; padding:16px;';
                 div.innerHTML = `
                     <div style="background:var(--card); width:100%; max-width:500px; border-radius:12px; overflow:hidden; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
                         <div style="padding:16px 24px; border-bottom:1px solid var(--line); font-weight:600; font-family:'Roboto Mono',monospace;">Opportunity Cost Check</div>
