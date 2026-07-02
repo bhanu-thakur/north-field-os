@@ -1886,7 +1886,7 @@ const app = {
             let content = '';
             if (step === 1) content = `
                 <div style="font-size:3rem; margin-bottom:16px;">👋</div>
-                <h1 style="font-family:'Roboto', sans-serif; font-size:2rem; margin-bottom:16px; color:var(--ink);">Welcome to Dhaula OS</h1>
+                <h1 style="font-family:'Roboto', sans-serif; font-size:2rem; margin-bottom:16px; color:var(--ink);">Welcome to Dhaula</h1>
                 <p style="font-size:1.1rem; color:var(--ink-soft); max-width:400px; line-height:1.6; margin-bottom:32px;">You capture raw observations from the field. Our local Pattern Engine clusters them into emerging industry themes.</p>
                 <button class="btn btn--primary btn--lg" onclick="document.getElementById('welcome-next').click()">Next</button>
             `;

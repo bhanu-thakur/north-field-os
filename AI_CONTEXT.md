@@ -1,5 +1,5 @@
 # AI CONTEXT
-**Project:** Dhaula OS
+**Project:** Dhaula
 **Status:** Architecture planning & Scaffolding.
 **Goal:** Build an offline PWA for field observations.
 **Constraint:** Vanilla JS only. The most important rule is the 30-Second Rule.

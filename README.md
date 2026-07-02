@@ -1,8 +1,8 @@
-# Dhaula OS
+# Dhaula
 > The Founder's Field Operating System
 
 ## Purpose
-Dhaula OS is a mobile-first, offline-first Progressive Web App (PWA) designed for founders building regional business empires. It exists to reduce the friction between observing reality and taking action.
+Dhaula is a mobile-first, offline-first Progressive Web App (PWA) designed for founders building regional business empires. It exists to reduce the friction between observing reality and taking action.
 
 ## Philosophy
 - **The 30-Second Rule:** Everything must be executable standing outside a hotel in under 30 seconds.

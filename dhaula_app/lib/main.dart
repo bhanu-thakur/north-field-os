@@ -10,7 +10,7 @@ class DhaulaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dhaula OS',
+      title: 'Dhaula',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E5945)),
         useMaterial3: true,
@@ -40,7 +40,7 @@ class HelloScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Hello Dhaula OS!',
+              'Hello Dhaula!',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF143E30),

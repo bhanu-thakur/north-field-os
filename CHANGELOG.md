@@ -182,7 +182,7 @@
 
 ## [V4.0.0-alpha] - Pivot to The Spearhead OS
 
-All notable changes to Dhaula OS will be documented in this file.
+All notable changes to Dhaula will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [4.0.0] - 2026-07-01
