@@ -645,6 +645,7 @@ const renderBusinessDetail = async () => {
 
 const renderSettings = async () => {
     const apiKey = await NF.DB.getSetting('gemini_api_key', '');
+    const keyBadge = apiKey ? `<span style="margin-left:8px; font-size:0.85rem; color:var(--good); font-weight:600;">Key saved ✓ (ends …${apiKey.slice(-4)})</span>` : '';
     return `
         <main class="main">
             <div class="wrap">
@@ -658,8 +659,8 @@ const renderSettings = async () => {
                         Your API key is saved locally in your browser and used to make direct, free calls to Google's generative AI.
                     </p>
                     
-                    <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:8px;">Gemini API Key</label>
-                    <input type="password" id="setting-api-key" value="${apiKey}" class="input" style="width:100%; max-width:400px; margin-bottom:16px;" placeholder="AIzaSy...">
+                    <label style="display:flex; align-items:center; font-size:0.85rem; font-weight:600; margin-bottom:8px;">Gemini API Key ${keyBadge}</label>
+                    <input type="password" id="setting-api-key" value="" class="input" style="width:100%; max-width:400px; margin-bottom:16px;" placeholder="AIzaSy...">
                     
                     <div>
                         <button class="btn btn--primary" onclick="app.saveSettings()">Save Settings</button>
@@ -728,7 +729,9 @@ const app = {
     },
     saveSettings: async () => {
         const apiKey = document.getElementById('setting-api-key').value.trim();
-        await NF.DB.setSetting('gemini_api_key', apiKey);
+        if (apiKey !== "") {
+            await NF.DB.setSetting('gemini_api_key', apiKey);
+        }
         app.showDialog('alert', 'Settings Saved', 'API Key has been securely saved to local storage.');
     },
     testAPIConnection: async () => {

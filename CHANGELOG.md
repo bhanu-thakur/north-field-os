@@ -1,5 +1,11 @@
 # NORTH OS — CHANGELOG
 
+## [2026-07-02] - Mission 1: Key Security
+- Secured Gemini API key by moving it from the URL to the \`x-goog-api-key\` header.
+- Safely parsed API responses, preventing app crashes on unexpected or malformed payloads.
+- Masked the API key in the Settings UI, rendering a "Key saved ✓" badge instead of the plain text key.
+- Prevented accidental deletion of the stored API key when saving settings with an empty input field.
+
 ## [V5.0.0] - The Active Copilot Upgrade
 *North OS has evolved from a passive intelligence engine into an active, multi-disciplinary startup copilot. It now actively coaches you, builds tactical execution playbooks, and simulates an entire boardroom of executives.*
 

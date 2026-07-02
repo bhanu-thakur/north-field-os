@@ -23,7 +23,7 @@
 
 ## MISSION LADDER (tick as completed)
 
-### ☐ MISSION 1 — Key Security (items #1–3)
+### ☑ MISSION 1 — Key Security (items #1–3)
 **Goal:** the Gemini key never appears in a URL or in rendered HTML; AI responses can't throw on odd payloads.
 **Files:** `modules/db.js`, `app.js` (renderSettings ~line 646, saveSettings ~line 730).
 **Steps:**

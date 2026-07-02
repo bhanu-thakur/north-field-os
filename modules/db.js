@@ -238,9 +238,12 @@ NF.AI = (function() {
                 body.system_instruction = { parts: [{ text: opts.systemInstruction }] };
             }
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': apiKey
+                },
                 body: JSON.stringify(body)
             });
             
@@ -251,7 +254,12 @@ NF.AI = (function() {
             }
             
             const data = await res.json();
-            return data.candidates[0].content.parts[0].text;
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text === undefined) {
+                console.error('Gemini API Error: Invalid payload or safety block', data);
+                return null;
+            }
+            return text;
         } catch (err) {
             console.error('Gemini API Error: Network failure.');
             return null;
