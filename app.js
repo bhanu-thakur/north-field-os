@@ -267,10 +267,13 @@ const renderJitLearning = async () => {
     Focus STRICTLY on non-technical business strategy, sales, and operations. Do NOT teach technical skills (e.g. if the opportunity involves video editing, teach me how to sell to the studio, not how to edit videos).
     Format as HTML (use <ul> and <li style="margin-bottom:8px;">). Do not include markdown code block backticks.`;
     
-    const res = await NF.AI.generateContent(prompt);
-    if (!res) return null;
+    const res = await NF.AI.generateContent(prompt, { taskClass: 'brief' });
+    if (!res || !res.ok) {
+        app.showDialog('alert', 'AI Error', 'Failed to generate prep brief: ' + (res?.error || 'unknown'));
+        return null;
+    }
     
-    let htmlRes = res.replace(/```html/gi, '').replace(/```/g, '').trim();
+    let htmlRes = res.text.replace(/```html/gi, '').replace(/```/g, '').trim();
     return `
         <div class="card" style="padding:16px; background:var(--card); border:1px solid var(--primary-soft); border-left:4px solid var(--primary);">
             <h3 style="font-size:1.1rem; color:var(--primary); margin-bottom:12px;">AI Playbook: ${bestOpp.next_action}</h3>
@@ -740,8 +743,8 @@ const app = {
             return app.showDialog('alert', 'Error', 'Please save an API key first.');
         }
         app.showDialog('alert', 'Testing...', 'Sending a test ping to Gemini API...');
-        const res = await NF.AI.generateContent("Reply with the word 'SUCCESS' if you receive this message.");
-        if (res && res.includes('SUCCESS')) {
+        const res = await NF.AI.generateContent("Reply with the word 'SUCCESS' if you receive this message.", { taskClass: 'chat' });
+        if (res.ok && res.text.includes('SUCCESS')) {
             app.showDialog('alert', 'Connection Successful', 'The Gemini API is working perfectly.');
         } else {
             app.showDialog('alert', 'Connection Failed', 'Failed to connect. Please verify your API key and internet connection.');
@@ -764,10 +767,10 @@ Return ONLY the raw JSON array. No markdown formatting, no backticks.
 Observations to analyze:
 ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
 
-            let res = await NF.AI.generateContent(prompt, { systemInstruction: "You are a ruthless business strategist. Output valid raw JSON only.", maxOutputTokens: 1000 });
-            if (res) {
+            let res = await NF.AI.generateContent(prompt, { systemInstruction: "You are a ruthless business strategist. Output valid raw JSON only.", taskClass: 'cluster' });
+            if (res.ok) {
                 try {
-                    let text = res.replace(/```json/g, '').replace(/```/g, '').trim();
+                    let text = res.text.replace(/```json/g, '').replace(/```/g, '').trim();
                     let clusters = JSON.parse(text);
                     for (let cluster of clusters) {
                         if (cluster.observation_ids && cluster.observation_ids.length >= 3) {
@@ -860,9 +863,9 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         Objections: ${(biz.objections||[]).join(', ')}
         Next Move: ${biz.next_move}`;
         
-        const res = await NF.AI.generateContent(prompt);
-        if (res) {
-            let htmlRes = res.replace(/```html/gi, '').replace(/```/g, '').trim();
+        const res = await NF.AI.generateContent(prompt, { taskClass: 'brief' });
+        if (res.ok) {
+            let htmlRes = res.text.replace(/```html/gi, '').replace(/```/g, '').trim();
             container.innerHTML = `
                 <div class="card" style="border:1px solid var(--primary-soft); background:var(--card); border-left:4px solid var(--primary);">
                     <h3 style="font-size:1.1rem; color:var(--primary); margin-bottom:12px;">AI Executive Brief</h3>
@@ -910,10 +913,10 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         }
         `;
         
-        const res = await NF.AI.generateContent(prompt);
-        if (res) {
+        const res = await NF.AI.generateContent(prompt, { taskClass: 'board' });
+        if (res.ok) {
             try {
-                const cleaned = res.replace(/```json/gi, '').replace(/```/g, '').trim();
+                const cleaned = res.text.replace(/```json/gi, '').replace(/```/g, '').trim();
                 const scores = JSON.parse(cleaned);
                 opp.leverage = scores.leverage;
                 opp.leverage_text = scores.leverage_text;
@@ -961,10 +964,10 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
           "cpo": "CPO's brutally honest 2-sentence take."
         }`;
         
-        const res = await NF.AI.generateContent(prompt, { maxOutputTokens: 800 });
-        if (res) {
+        const res = await NF.AI.generateContent(prompt, { taskClass: 'board' });
+        if (res.ok) {
             try {
-                const cleaned = res.replace(/```json/gi, '').replace(/```/g, '').trim();
+                const cleaned = res.text.replace(/```json/gi, '').replace(/```/g, '').trim();
                 let match = cleaned.match(/\{[\s\S]*\}/);
                 const board = JSON.parse(match ? match[0] : cleaned);
                 opp.board_analysis = board;
@@ -1081,9 +1084,9 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         const historyText = opp.tutor_history.map(m => `${m.role.toUpperCase()}: ${m.text}`).join('\n\n');
         const prompt = `Opportunity Context: "${opp.title}" (Stage: ${opp.status})\n\nConversation History:\n${historyText}\n\nAI (Respond concisely):`;
         
-        const res = await NF.AI.generateContent(prompt, { systemInstruction: sysPrompt, maxOutputTokens: 600 });
-        if (res) {
-            opp.tutor_history.push({ role: 'ai', text: res });
+        const res = await NF.AI.generateContent(prompt, { systemInstruction: sysPrompt, taskClass: 'chat' });
+        if (res.ok) {
+            opp.tutor_history.push({ role: 'ai', text: res.text });
             await NF.DB.put('opportunities', opp);
             const updatedChatBox = document.getElementById('tutor-chat');
             if (updatedChatBox) {
@@ -1181,10 +1184,10 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             }
             `;
             
-            const res = await NF.AI.generateContent(prompt, { maxOutputTokens: 600 });
-            if (res) {
+            const res = await NF.AI.generateContent(prompt, { taskClass: 'capture' });
+            if (res.ok) {
                 try {
-                    let cleaned = res.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    let cleaned = res.text.replace(/```json/gi, '').replace(/```/g, '').trim();
                     let match = cleaned.match(/\{[\s\S]*\}/);
                     if (match) cleaned = match[0];
                     
@@ -1321,10 +1324,10 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             Extract the core failure mode and lesson.
             Format as JSON: {"predicted_vs_actual": "Short analysis of what they thought would happen vs reality", "lesson": "The core mental model to take away"}`;
             
-            const res = await NF.AI.generateContent(prompt);
-            if (res) {
+            const res = await NF.AI.generateContent(prompt, { taskClass: 'capture' });
+            if (res.ok) {
                 try {
-                    const cleaned = res.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    const cleaned = res.text.replace(/```json/gi, '').replace(/```/g, '').trim();
                     const aiData = JSON.parse(cleaned);
                     predicted = aiData.predicted_vs_actual || 'Unknown';
                     lesson = aiData.lesson || 'Unknown';

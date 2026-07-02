@@ -36,7 +36,7 @@
 - [ ] Saving Settings with an empty key field does NOT erase an existing key.
 - [ ] Simulate a response `{candidates:[]}`: app shows no crash, logs the payload.
 
-### ☐ MISSION 2 — Typed AI Results + Token Budgets (items #16, #17, #99)
+### ☑ MISSION 2 — Typed AI Results + Token Budgets (items #16, #17, #99)
 **Goal:** every AI caller can distinguish failure modes; long JSON never truncates; free-tier throttling is survivable.
 **Files:** `modules/db.js`, every `NF.AI.generateContent` call site in `app.js` (16 sites — grep them).
 **Steps:**

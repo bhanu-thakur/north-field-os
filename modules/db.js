@@ -223,14 +223,17 @@ NF.DB = (function() {
 NF.AI = (function() {
     async function generateContent(prompt, opts = {}) {
         const apiKey = await NF.DB.getSetting('gemini_api_key');
-        if (!apiKey) return null;
+        if (!apiKey) return { ok: false, text: null, error: 'no_key' };
+        
+        const tokenBudgets = { capture: 300, cluster: 2000, board: 1500, chat: 600, brief: 800 };
+        const maxTokens = opts.maxOutputTokens || (opts.taskClass ? tokenBudgets[opts.taskClass] : 300) || 300;
         
         try {
             const body = {
                 contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: { 
                     temperature: opts.temperature || 0.2,
-                    maxOutputTokens: opts.maxOutputTokens || 300
+                    maxOutputTokens: maxTokens
                 }
             };
             
@@ -238,7 +241,7 @@ NF.AI = (function() {
                 body.system_instruction = { parts: [{ text: opts.systemInstruction }] };
             }
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`, {
+            const doFetch = () => fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -246,23 +249,33 @@ NF.AI = (function() {
                 },
                 body: JSON.stringify(body)
             });
+
+            let res = await doFetch();
+            
+            if (res.status === 429) {
+                await new Promise(r => setTimeout(r, 2000 + Math.random() * 1000));
+                res = await doFetch();
+                if (res.status === 429) {
+                    return { ok: false, text: null, error: 'rate_limited' };
+                }
+            }
             
             if (!res.ok) {
                 const errText = await res.text();
                 console.error('Gemini API Error:', res.status, errText);
-                return null;
+                return { ok: false, text: null, error: 'http_' + res.status };
             }
             
             const data = await res.json();
             const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text === undefined) {
                 console.error('Gemini API Error: Invalid payload or safety block', data);
-                return null;
+                return { ok: false, text: null, error: 'empty_candidate' };
             }
-            return text;
+            return { ok: true, text: text, error: null };
         } catch (err) {
-            console.error('Gemini API Error: Network failure.');
-            return null;
+            console.error('Gemini API Error: Network failure.', err);
+            return { ok: false, text: null, error: 'network' };
         }
     }
     

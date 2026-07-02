@@ -1,5 +1,11 @@
 # NORTH OS — CHANGELOG
 
+## [2026-07-02] - Mission 2: Typed AI Results + Token Budgets
+- Upgraded the AI integration to use structured return objects \`{ok, text, error}\` for robust error handling.
+- Implemented per-task token budgets to optimize API usage.
+- Added intelligent retry logic for HTTP 429 (Rate Limited) errors to handle free-tier throttling gracefully.
+- Updated all call sites to handle the new return object and show appropriate UI messages on failure.
+
 ## [2026-07-02] - Mission 1: Key Security
 - Secured Gemini API key by moving it from the URL to the \`x-goog-api-key\` header.
 - Safely parsed API responses, preventing app crashes on unexpected or malformed payloads.
