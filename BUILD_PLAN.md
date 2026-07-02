@@ -61,7 +61,7 @@
 - [ ] Importing the same file twice creates zero duplicates.
 - [ ] Corrupt/truncated JSON shows an error toast; DB untouched.
 
-### ☐ MISSION 4 — Service Worker Completeness (item #5)
+### ☑ MISSION 4 — Service Worker Completeness (item #5)
 **Goal:** true offline boot; updates ship without manual cache bumps.
 **Files:** `sw.js`.
 **Steps:**

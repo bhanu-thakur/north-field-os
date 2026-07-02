@@ -1,5 +1,11 @@
 # NORTH OS — CHANGELOG
 
+## [2026-07-02] - Mission 4: Service Worker Completeness
+- Upgraded the Service Worker (`sw.js`) to cache newly introduced data and module files (`boardroom.js`, `journal.js`, `bibles.js`, `pipeline.js`).
+- Implemented a "Network First, fallback to Cache" strategy for JavaScript application code (`app.js` and `modules/*.js`) to ensure updates ship immediately on reload without requiring a manual cache-version bump.
+- Maintained a "Cache First" strategy for core assets (CSS, manifest, index) to ensure lightning-fast boot times, while actively updating the cache in the background.
+- Bumped cache version to `v3`.
+
 ## [2026-07-02] - Mission 3: Export / Import Backup
 - Built `NF.DB.exportAll()` to securely serialize all 7 IndexedDB stores into a versioned JSON blob and trigger a local download.
 - Built `NF.DB.importAll()` to parse, validate, and non-destructively merge backup JSON files via ID-collision overwrites.

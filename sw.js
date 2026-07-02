@@ -1,9 +1,13 @@
-const CACHE_NAME = 'north-field-os-v2';
+const CACHE_NAME = 'north-field-os-v3';
 const ASSETS = [
     './',
     './index.html',
     './app.js',
     './modules/db.js',
+    './modules/boardroom.js',
+    './data/journal.js',
+    './data/bibles.js',
+    './data/pipeline.js',
     './css/design-system.css',
     './manifest.webmanifest'
 ];
@@ -26,9 +30,28 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-    e.respondWith(
-        caches.match(e.request).then(response => {
-            return response || fetch(e.request);
-        })
-    );
+    if (e.request.method !== 'GET') return;
+
+    const url = new URL(e.request.url);
+    const isAppOrModuleJs = url.pathname.endsWith('app.js') || url.pathname.match(/\/modules\/.*\.js$/);
+
+    if (isAppOrModuleJs) {
+        e.respondWith(
+            fetch(e.request).then(response => {
+                const resClone = response.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
+                return response;
+            }).catch(() => caches.match(e.request))
+        );
+    } else {
+        e.respondWith(
+            caches.match(e.request).then(response => {
+                return response || fetch(e.request).then(netResponse => {
+                    const resClone = netResponse.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
+                    return netResponse;
+                });
+            })
+        );
+    }
 });
