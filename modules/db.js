@@ -242,7 +242,8 @@ NF.DB = (function() {
     }
 
     async function importAll(jsonString) {
-        const data = JSON.parse(jsonString);
+        const data = NF.AI.extractJSON(jsonString);
+        if (!data) throw new Error('Invalid backup format (JSON parse failed)');
         if (!data.version || !data.stores) throw new Error('Invalid backup format');
         if (data.version > DB_VERSION) {
             throw new Error(`Backup version (${data.version}) is newer than current app version (${DB_VERSION}). Please update the app.`);
@@ -320,6 +321,17 @@ NF.AI = (function() {
             return { ok: false, text: null, error: 'network' };
         }
     }
+    function extractJSON(text) {
+        if (!text) return null;
+        let clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+        let match = clean.match(/[\{\[][\s\S]*[\}\]]/);
+        if (match) clean = match[0];
+        try {
+            return JSON.parse(clean);
+        } catch (e) {
+            return null;
+        }
+    }
     
-    return { generateContent };
+    return { generateContent, extractJSON };
 })();

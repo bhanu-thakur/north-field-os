@@ -816,6 +816,28 @@ const app = {
         }
         app.showDialog('alert', 'Settings Saved', 'API Key has been securely saved to local storage.');
     },
+    _patternEngineTimer: null,
+    toast: (msg) => {
+        let t = document.createElement('div');
+        t.textContent = msg;
+        t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:24px;z-index:9999;font-size:0.9rem;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 4000);
+    },
+    generateJSON: async (prompt, opts) => {
+        let currentPrompt = prompt;
+        for (let i = 0; i < 2; i++) {
+            const res = await NF.AI.generateContent(currentPrompt, opts);
+            if (res.ok) {
+                const parsed = NF.AI.extractJSON(res.text);
+                if (parsed !== null) return parsed;
+            }
+            currentPrompt = prompt + "\n\nReturn ONLY valid JSON. No prose.";
+            console.warn("AI returned malformed JSON, retrying...");
+        }
+        app.toast("AI returned an unreadable answer — tap to retry");
+        return null;
+    },
     testAPIConnection: async () => {
         const apiKey = await NF.DB.getSetting('gemini_api_key');
         if (!apiKey) {
@@ -846,12 +868,9 @@ Return ONLY the raw JSON array. No markdown formatting, no backticks.
 Observations to analyze:
 ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
 
-            let res = await NF.AI.generateContent(prompt, { systemInstruction: "You are a ruthless business strategist. Output valid raw JSON only.", taskClass: 'cluster' });
-            if (res.ok) {
-                try {
-                    let text = res.text.replace(/```json/g, '').replace(/```/g, '').trim();
-                    let clusters = JSON.parse(text);
-                    for (let cluster of clusters) {
+            let clusters = await app.generateJSON(prompt, { systemInstruction: "You are a ruthless business strategist. Output valid raw JSON only.", taskClass: 'cluster' });
+            if (clusters) {
+                for (let cluster of clusters) {
                         if (cluster.observation_ids && cluster.observation_ids.length >= 3) {
                             const patternId = 'pat_' + Date.now() + '_' + Math.floor(Math.random()*1000);
                             await NF.DB.put('patterns', {
@@ -992,12 +1011,9 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
         }
         `;
         
-        const res = await NF.AI.generateContent(prompt, { taskClass: 'board' });
-        if (res.ok) {
-            try {
-                const cleaned = res.text.replace(/```json/gi, '').replace(/```/g, '').trim();
-                const scores = JSON.parse(cleaned);
-                opp.leverage = scores.leverage;
+        const scores = await app.generateJSON(prompt, { taskClass: 'board' });
+        if (scores) {
+            opp.leverage = scores.leverage;
                 opp.leverage_text = scores.leverage_text;
                 opp.velocity = scores.velocity;
                 opp.velocity_text = scores.velocity_text;
@@ -1008,14 +1024,8 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
                 opp.calculated_score = computeScore(opp.leverage, opp.velocity, opp.conviction);
                 opp.score_source = 'ai';
                 
-                await NF.DB.put('opportunities', opp);
-                app.render();
-            } catch (e) {
-                console.error("Failed to parse AI diagnostics:", e);
-                app.showDialog('alert', 'Error', 'Failed to parse AI response. Please try again.');
-            }
-        } else {
-            app.showDialog('alert', 'Error', 'Failed to generate diagnostics. Check API key.');
+            await NF.DB.put('opportunities', opp);
+            app.render();
         }
         
         if (btn) btn.innerHTML = '<svg class="ic" style="margin-right:4px;"><use href="#i-spark"/></svg> Run Diagnostics';
@@ -1270,16 +1280,9 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             }
             `;
             
-            const res = await NF.AI.generateContent(prompt, { taskClass: 'capture' });
-            if (res.ok) {
-                try {
-                    let cleaned = res.text.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    let match = cleaned.match(/\{[\s\S]*\}/);
-                    if (match) cleaned = match[0];
-                    
-                    const aiData = JSON.parse(cleaned);
-                    
-                    if (aiData.cleaned_text) finalNote = aiData.cleaned_text;
+            const aiData = await app.generateJSON(prompt, { taskClass: 'capture' });
+            if (aiData) {
+                if (aiData.cleaned_text) finalNote = aiData.cleaned_text;
                     if (aiData.business_id && aiData.business_id !== 'null') {
                         linkedBizId = aiData.business_id;
                     }
@@ -1323,7 +1326,6 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
                         }
                         return;
                     }
-                } catch(e) { console.error("Capture AI JSON parse error", e); }
             }
         }
         
@@ -1362,7 +1364,14 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             
             app.showDialog('alert', 'Saved', signalMsg);
             app.render();
-            app.runPatternEngine().then(() => app.render());
+            
+            if (app._patternEngineTimer) clearTimeout(app._patternEngineTimer);
+            app._patternEngineTimer = setTimeout(() => {
+                app.runPatternEngine().then(async () => {
+                    const container = document.getElementById('emerging-patterns-container');
+                    if (container) container.innerHTML = await renderEmergingPatterns();
+                });
+            }, 8000);
         }
     },
     addEvidence: async (id) => {
@@ -1410,14 +1419,10 @@ ${unprocessed.map(o => `ID: ${o.id} | Text: ${o.text}`).join('\n')}`;
             Extract the core failure mode and lesson.
             Format as JSON: {"predicted_vs_actual": "Short analysis of what they thought would happen vs reality", "lesson": "The core mental model to take away"}`;
             
-            const res = await NF.AI.generateContent(prompt, { taskClass: 'capture' });
-            if (res.ok) {
-                try {
-                    const cleaned = res.text.replace(/```json/gi, '').replace(/```/g, '').trim();
-                    const aiData = JSON.parse(cleaned);
-                    predicted = aiData.predicted_vs_actual || 'Unknown';
-                    lesson = aiData.lesson || 'Unknown';
-                } catch(e) { console.error("Failed to parse AI post-mortem:", e); }
+            const aiData = await app.generateJSON(prompt, { taskClass: 'capture' });
+            if (aiData) {
+                predicted = aiData.predicted_vs_actual || 'Unknown';
+                lesson = aiData.lesson || 'Unknown';
             }
         } 
         

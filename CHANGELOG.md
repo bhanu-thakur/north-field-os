@@ -1,5 +1,10 @@
 # NORTH OS — CHANGELOG
 
+## [2026-07-02] - Mission 7: Live Pattern Loop + Resilient JSON
+- Bulletproof AI Parsing: Added `NF.AI.extractJSON` and `app.generateJSON` wrapper to handle all AI generation calls. It gracefully handles markdown fences, finds balanced braces, and returns parsed JSON.
+- Retry Loop & Toasts: On JSON parse failure, the wrapper automatically retries once with explicit instructions to output valid JSON. On a second failure, a non-blocking toast informs the user.
+- Live Pattern Engine Debounce: Passive notes logged via Universal Capture now trigger `runPatternEngine` in the background after an 8-second debounce, dynamically re-rendering the patterns container without a full page refresh.
+
 ## [2026-07-02] - Mission 6: One Scoring Truth + One Lifecycle
 - Unified the Opportunity Lifecycle: Extracted the lifecycle into a single global array (`LIFECYCLE`), ensuring timeline visualization, filtering, and stage advancement logic are perfectly in sync.
 - Consolidated Scoring Logic: Replaced hardcoded math with a unified `computeScore` function across all AI and fallback scoring paths.

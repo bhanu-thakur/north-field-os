@@ -98,7 +98,7 @@
 - [ ] A keyless spawn shows score with "est." tag; running diagnostics later replaces it and the tag disappears.
 - [ ] Timeline stages and advanceStage sequence are identical strings from one array.
 
-### ☐ MISSION 7 — Live Pattern Loop + Resilient JSON (items #14, #15)
+### ☑ MISSION 7 — Live Pattern Loop + Resilient JSON (items #14, #15)
 **Goal:** patterns emerge in-session; malformed model output never kills a feature silently.
 **Files:** `app.js` (captureObservation ~1144, runPatternEngine ~760, all 6 `JSON.parse` sites), `modules/db.js` optional helper.
 **Steps:**
