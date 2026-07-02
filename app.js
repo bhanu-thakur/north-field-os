@@ -59,6 +59,23 @@ const renderMorning = async () => {
     let patterns = await NF.DB.getAll('patterns');
     const allObs = await NF.DB.getAll('observations');
     
+    const lastExport = await NF.DB.getSetting('last_export_at', 0);
+    const lastExportObsCount = await NF.DB.getSetting('last_export_obs_count', 0);
+    const bannerDismissed = await NF.DB.getSetting('backup_banner_dismissed', false);
+    const daysSinceExport = (Date.now() - lastExport) / (1000 * 60 * 60 * 24);
+    let backupBanner = '';
+    if (!bannerDismissed && allObs.length > lastExportObsCount && (lastExport === 0 || daysSinceExport > 7)) {
+        backupBanner = `
+            <div style="background:var(--primary-soft); padding:12px 16px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                <span style="font-size:0.9rem; color:var(--primary); font-weight:600;">You have un-backed-up data. Export a backup now.</span>
+                <div>
+                    <button class="btn btn--sm" style="background:var(--primary); color:#fff; border:none;" onclick="app.go('Settings')">Go to Settings</button>
+                    <button class="btn btn--sm" style="border:none; color:var(--primary);" onclick="app.dismissBackupBanner()">Dismiss</button>
+                </div>
+            </div>
+        `;
+    }
+    
     // 1. Mentor Mode / Dormant Connections (Grounded in Data)
     let mentorMessage = '';
     if (allObs.length < 10) {
@@ -149,6 +166,7 @@ const renderMorning = async () => {
     return `
         <main class="main">
             <div class="wrap">
+                ${backupBanner}
                 <div class="crumb">System / Morning Briefing</div>
                 <h1 class="ptitle" style="margin-bottom:8px;">Good Morning.</h1>
                 
@@ -649,6 +667,14 @@ const renderBusinessDetail = async () => {
 const renderSettings = async () => {
     const apiKey = await NF.DB.getSetting('gemini_api_key', '');
     const keyBadge = apiKey ? `<span style="margin-left:8px; font-size:0.85rem; color:var(--good); font-weight:600;">Key saved ✓ (ends …${apiKey.slice(-4)})</span>` : '';
+    const lastExport = await NF.DB.getSetting('last_export_at', 0);
+    
+    const timeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+    let lastExportText = 'Never';
+    if (lastExport > 0) {
+        const days = Math.round((lastExport - Date.now()) / (1000 * 60 * 60 * 24));
+        lastExportText = days === 0 ? 'Today' : timeFormatter.format(days, 'day');
+    }
     return `
         <main class="main">
             <div class="wrap">
@@ -671,6 +697,24 @@ const renderSettings = async () => {
                     </div>
                 </div>
                 
+                <div class="card" style="padding:24px; margin-top:24px;">
+                    <h2 style="font-size:1.2rem; margin-bottom:8px;">Data Backup</h2>
+                    <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:16px;">
+                        Export your entire database to a JSON file, or restore from a previous backup.
+                    </p>
+                    <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+                        <button class="btn btn--sm" onclick="app.exportBackup()">Export Backup</button>
+                        <span style="font-size:0.85rem; color:var(--ink-soft);">Last export: ${lastExportText}</span>
+                    </div>
+                    <div style="border-top:1px solid var(--line); padding-top:16px;">
+                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:8px;">Import Backup</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="file" id="backup-file" accept=".json" class="input" style="flex:1;">
+                            <button class="btn btn--sm" onclick="app.importBackup()">Restore</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card" style="padding:24px; margin-top:24px; border-color:#e0b4b4;">
                     <h2 style="font-size:1.2rem; margin-bottom:8px; color:#c92a2a;">Danger Zone</h2>
                     <p style="font-size:0.9rem; color:var(--ink-soft); margin-bottom:16px;">
@@ -684,6 +728,33 @@ const renderSettings = async () => {
 };
 
 const app = {
+    dismissBackupBanner: async () => {
+        await NF.DB.setSetting('backup_banner_dismissed', true);
+        app.render();
+    },
+    exportBackup: async () => {
+        app.showDialog('alert', 'Exporting...', 'Preparing your backup file...');
+        await NF.DB.exportAll();
+        app.render();
+    },
+    importBackup: async () => {
+        const fileInput = document.getElementById('backup-file');
+        if (!fileInput.files || fileInput.files.length === 0) return;
+        
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                app.showDialog('alert', 'Restoring...', 'Merging backup data. Please wait...');
+                await NF.DB.importAll(e.target.result);
+                app.showDialog('alert', 'Success', 'Backup restored successfully.');
+                app.render();
+            } catch (err) {
+                app.showDialog('alert', 'Import Error', err.message || 'Corrupt or invalid backup file.');
+            }
+        };
+        reader.readAsText(file);
+    },
     escapeHtml: (unsafe) => {
         if (typeof unsafe !== 'string') return unsafe;
         return unsafe

@@ -48,7 +48,7 @@
 - [ ] Pattern engine prompt with 20 observations returns unclipped JSON (verify closing bracket present).
 - [ ] All 16 call sites compile against the new shape (grep confirms zero remaining bare-string usages).
 
-### ☐ MISSION 3 — Export / Import Backup (items #6, #7)
+### ☑ MISSION 3 — Export / Import Backup (items #6, #7)
 **Goal:** the founder's entire graph survives a browser wipe.
 **Files:** `modules/db.js` (add `exportAll`/`importAll`), `app.js` (Settings section).
 **Steps:**

@@ -215,8 +215,50 @@ NF.DB = (function() {
         });
     }
 
+    async function exportAll() {
+        const db = await init();
+        const exportData = {
+            version: DB_VERSION,
+            exported_at: Date.now(),
+            stores: {}
+        };
+        for (const storeName of STORES) {
+            exportData.stores[storeName] = await getAll(storeName);
+        }
+        await setSetting('last_export_at', exportData.exported_at);
+        await setSetting('last_export_obs_count', (exportData.stores['observations'] || []).length);
+        
+        const blob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const d = new Date();
+        const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        a.href = url;
+        a.download = `north-backup-${ds}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    async function importAll(jsonString) {
+        const data = JSON.parse(jsonString);
+        if (!data.version || !data.stores) throw new Error('Invalid backup format');
+        if (data.version > DB_VERSION) {
+            throw new Error(`Backup version (${data.version}) is newer than current app version (${DB_VERSION}). Please update the app.`);
+        }
+        
+        for (const storeName of Object.keys(data.stores)) {
+            if (STORES.includes(storeName)) {
+                for (const item of data.stores[storeName]) {
+                    await put(storeName, item); 
+                }
+            }
+        }
+    }
+
     return {
-        init, get, getAll, put, remove, getSetting, setSetting, switchDatabase, nukeDatabase
+        init, get, getAll, put, remove, getSetting, setSetting, switchDatabase, nukeDatabase, exportAll, importAll
     };
 })();
 

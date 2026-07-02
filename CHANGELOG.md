@@ -1,5 +1,11 @@
 # NORTH OS — CHANGELOG
 
+## [2026-07-02] - Mission 3: Export / Import Backup
+- Built `NF.DB.exportAll()` to securely serialize all 7 IndexedDB stores into a versioned JSON blob and trigger a local download.
+- Built `NF.DB.importAll()` to parse, validate, and non-destructively merge backup JSON files via ID-collision overwrites.
+- Added a new Data Backup section to the Settings UI with an export button, relative time display for the last backup, and a file input for restoration.
+- Implemented a proactive, dismissible warning banner on the Morning desk that alerts the founder if new observations have been logged since the last export and the backup is older than 7 days (or missing).
+
 ## [2026-07-02] - Mission 2: Typed AI Results + Token Budgets
 - Upgraded the AI integration to use structured return objects \`{ok, text, error}\` for robust error handling.
 - Implemented per-task token budgets to optimize API usage.
